@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { ShoppingBag, Plus, Minus, X, MessageCircle, Sun, Moon, Utensils, Heart, Phone } from "lucide-react";
