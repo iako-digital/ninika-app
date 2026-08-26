@@ -134,7 +134,7 @@ export default function Home() {
           alt="ნინიკა - საოჯახო სამზარეულო" 
           className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-4 hover:scale-105 transition-transform" 
         />
-        <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია — 50 წლიანი ოჯახური ტრადიცია 🌿</p>
+        <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია</p>
       </header>
 
       <main className="p-6 max-w-5xl mx-auto">
