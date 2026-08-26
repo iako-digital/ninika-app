@@ -1,11 +1,13 @@
 "use client";
 export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
-import { ShoppingBag, Plus, Minus, X, MessageCircle, Sun, Moon, Utensils, Heart, Phone, Play } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
+const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
@@ -106,13 +108,13 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bgClass} pb-24 font-sans transition-colors duration-300 relative`}>
-      <nav className={`${headerBgClass} sticky top-0 z-40 px-6 py-3 shadow-md flex justify-between items-center border-b border-gold/20`}>
+      <nav className={`${headerBgClass} sticky top-0 z-40 px-6 py-3 shadow-md flex justify-between items-center border-b border-[#C6A265]/20`}>
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("menu")}>
           <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-10 w-10 rounded-full object-cover border border-[#C6A265]" />
           <span className="text-xl font-bold tracking-widest text-[#C6A265]">ნინიკა</span>
         </div>
         
-        <div className="hidden sm:flex gap-6 text-sm font-semibold">
+        <div className="flex gap-6 text-sm font-semibold">
           <button onClick={() => setActiveTab("menu")} className={`transition ${activeTab === "menu" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>მენიუ</button>
           <button onClick={() => setActiveTab("about")} className={`transition ${activeTab === "about" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>ჩვენს შესახებ</button>
           <button onClick={() => setActiveTab("contact")} className={`transition ${activeTab === "contact" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>კონტაქტი</button>
@@ -120,36 +122,31 @@ export default function Home() {
 
         <button 
           onClick={() => setDarkMode(!darkMode)} 
-          className="p-2.5 rounded-full bg-gold/20 hover:bg-gold/30 text-[#C6A265] transition"
+          className="p-2.5 rounded-full bg-[#C6A265]/20 hover:bg-[#C6A265]/30 text-[#C6A265] transition"
         >
           {darkMode ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </nav>
 
-      <header className={`${headerBgClass} text-center py-10 px-6 shadow-inner border-b border-gold/10 flex flex-col items-center`}>
+      <header className={`${headerBgClass} text-center py-10 px-6 shadow-inner border-b border-[#C6A265]/10 flex flex-col items-center`}>
         <img 
           src={LOGO_URL} 
           alt="ნინიკა - საოჯახო სამზარეულო" 
           className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-4 hover:scale-105 transition-transform" 
         />
         <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია — 50 წლიანი ოჯახური ტრადიცია 🌿</p>
-        
-        <div className="flex sm:hidden justify-center gap-4 mt-6 text-sm font-medium">
-          <button onClick={() => setActiveTab("menu")} className={`px-4 py-2 rounded-full ${activeTab === "menu" ? "bg-[#C6A265] text-[#1A1A1A] font-bold" : "bg-white/10"}`}>მენიუ</button>
-          <button onClick={() => setActiveTab("about")} className={`px-4 py-2 rounded-full ${activeTab === "about" ? "bg-[#C6A265] text-[#1A1A1A] font-bold" : "bg-white/10"}`}>ჩვენს შესახებ</button>
-          <button onClick={() => setActiveTab("contact")} className={`px-4 py-2 rounded-full ${activeTab === "contact" ? "bg-[#C6A265] text-[#1A1A1A] font-bold" : "bg-white/10"}`}>კონტაქტი</button>
-        </div>
       </header>
 
       <main className="p-6 max-w-5xl mx-auto">
+        {/* მენიუს სექცია */}
         {activeTab === "menu" && (
           <section>
-            <h2 className="text-3xl font-bold mb-8 text-[#C6A265] border-b border-gold/20 pb-3 flex items-center gap-2">
+            <h2 className="text-3xl font-bold mb-8 text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
               <Utensils size={28} /> ჩვენი მენიუ
             </h2>
 
             {products.length === 0 ? (
-              <p className="text-center text-lg py-12 opacity-70">პროდუქტები იტვირთება ან ჯერ არ არის დამატებული...</p>
+              <p className="text-center text-lg py-12 opacity-70">პროდუქტები იტვირთება...</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {products.map((product) => (
@@ -171,14 +168,14 @@ export default function Home() {
                         {product.video_url && (
                           <button
                             onClick={() => setSelectedVideo(toEmbedUrl(product.video_url))}
-                            className="mb-4 flex items-center gap-2 text-xs font-bold text-[#C6A265] bg-gold/10 hover:bg-gold/20 px-3 py-2 rounded-xl border border-gold/30 transition w-full justify-center"
+                            className="mb-4 flex items-center gap-2 text-xs font-bold text-[#C6A265] bg-[#C6A265]/10 hover:bg-[#C6A265]/20 px-3 py-2 rounded-xl border border-[#C6A265]/30 transition w-full justify-center"
                           >
                             <Play size={14} fill="currentColor" /> მომზადების წესი (ვიდეო)
                           </button>
                         )}
                       </div>
                       
-                      <div className="mt-auto flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-gold/30">
+                      <div className="mt-auto flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-[#C6A265]/30">
                         <button onClick={() => updateQuantity(product.id, -1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-bold shadow hover:bg-[#C6A265] hover:text-white transition">
                           <Minus size={16} />
                         </button>
@@ -195,44 +192,106 @@ export default function Home() {
           </section>
         )}
 
+        {/* ჩვენს შესახებ სექცია */}
         {activeTab === "about" && (
-          <section className={`${cardBgClass} p-8 rounded-3xl border shadow-xl leading-relaxed space-y-6`}>
-            <h2 className="text-3xl font-bold text-[#C6A265] mb-4 border-b border-gold/20 pb-3 flex items-center gap-2">
-              <Heart size={28} /> "ნინიკა" — რატომ და როგორ
-            </h2>
-            <p className="text-lg">
-              ხშირად მეკითხებიან, რატომ გადავწყვიტე ნახევარფაბრიკატების წარმოება და რატომ მაინცდამაინც ახლა. მით უმეტეს, ჩემს საყვარელ პროფესიას — მასწავლებლობას ვემსახურები, მაქვს ჩემი საქმე და ვარ შემდგარი ადამიანი.
-            </p>
-            <p className="text-lg">
-              სიმართლე ის არის, რომ ეს იდეა ახლა არ გაჩენილა. ეს ყველაფერი ბევრად ადრე დაიწყო — ჩემს ოჯახში, ჩემს ბავშვობაში, იმ სამზარეულოში, სადაც კულინარია უბრალოდ საქმე კი არა, ცხოვრების ნაწილი იყო. ჩვენს ოჯახს კულინარიაში ნახევარსაუკუნოვანი პროფესიული გამოცდილება მაინც აქვს (ბევრს ალბათ ტკბილად ახსენდება კიდეც ქალაქში ცნობილი სასაუზმე „ცისნამი“).
-            </p>
-            <div className="bg-gold/10 border-l-4 border-[#C6A265] p-5 rounded-r-2xl italic my-4">
-              "ჩვენ ყოველთვის გვინდოდა, ნინის ჰქონოდა ის, რაც ყველა ადამიანს სჭირდება — თავდაჯერებულობა, საკუთარი შესაძლებლობების რწმენა, დამოუკიდებლობის განცდა და საკუთარი შრომით მიღწეული ფინანსური სტაბილურობა."
+          <section className={`${cardBgClass} p-6 md:p-10 rounded-3xl border border-[#C6A265]/30 space-y-6 max-w-3xl mx-auto shadow-2xl`}>
+            <div className="w-full overflow-hidden rounded-2xl border border-[#C6A265]/30 shadow-lg mb-6">
+              <img src={ABOUT_IMAGE_URL} alt="ნინიკა - ჩვენს შესახებ" className="w-full h-auto object-cover max-h-[450px]" />
             </div>
-            <p className="text-lg">
-              „ნინიკა“ მხოლოდ ნახევარფაბრიკატების საწარმო არ არის: ეს არის დედისგან მიღებული კულინარიული ტრადიციის გაგრძელება, ჩემი და ნინის ერთად გავლილი გზა და ჩვენი მცდელობა, რომ ნინის ჰქონდეს თავისი საქმე, თავისი ადგილი და საკუთარი მომავლის შექმნის შესაძლებლობა.
-            </p>
+
+            <h2 className="text-3xl font-bold text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
+              <Heart size={28} /> მეტი, ვიდრე კულინარია
+            </h2>
+
+            <div className="space-y-4 text-base md:text-lg leading-relaxed opacity-90">
+              <p>
+                ხშირად მეკითხებიან, რატომ გადავწყვიტე ნახევარფაბრიკატების წარმოება და რატომ მაინცდამაინც ახლა. მით უმეტეს, ჩემს საყვარელ პროფესიას — მასწავლებლობას ვემსახურები, მაქვს ჩემი საქმე და ვარ შემდგარი ადამიანი.
+              </p>
+              <p>
+                სიმართლე ის არის, რომ ეს იდეა ახლა არ გაჩენილა. ეს ყველაფერი ბევრად ადრე დაიწყო — ჩემს ოჯახში, ჩემს ბავშვობაში, იმ სამზარეულოში, სადაც კულინარია უბრალოდ საქმე კი არა, ცხოვრების ნაწილი იყო. ჩვენს ოჯახს კულინარიაში ნახევარსაუკუნოვანი პროფესიული გამოცდილება მაინც აქვს და აი, ამ ტრადიციას თავისდაუნებურად, იქნებ არც თუ შემთხვევით, გადაეჯაჭვა ჩემი გოგონას, ნინის ინტერესი.
+              </p>
+              <p>
+                ბევრი თქვენგანი იცნობს ნინის, როგორც განსაკუთრებულ გოგონას. იცით, რომ ნინის ცხოვრებაში ბევრი რამ ცოტა მეტი ყურადღებით, მოთმინებითა და მხარდაჭერით მოდის.
+              </p>
+
+              <div className="bg-black/20 p-5 rounded-2xl border border-[#C6A265]/20 space-y-2">
+                <p className="font-semibold text-[#C6A265]">ჩვენ ყოველთვის გვინდოდა, მას ჰქონოდა ის, რაც ყველა ადამიანს სჭირდება:</p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  <li>თავდაჯერებულობა</li>
+                  <li>საკუთარი შესაძლებლობების რწმენა</li>
+                  <li>დამოუკიდებლობის განცდა</li>
+                  <li>საკუთარი შრომით მიღწეული ფინანსური სტაბილურობა</li>
+                </ul>
+              </div>
+
+              <p>
+                არ გვინდოდა, მისი ცხოვრება მხოლოდ სხვების დახმარებაზე ყოფილიყო დამოკიდებული. გვინდოდა, მისთვის შეგვექმნა საქმე, რომელშიც ის იქნებოდა მნიშვნელოვანი და წარმატებული.
+              </p>
+              <p>
+                ვთვლი, რომ ამ მიმართულებით სერიოზული ნაბიჯი გადავდგი და დავეუფლე კულინარიის ხელოვნებას პროფესიულ დონეზე. კარგად ვიცით — კულინარიაში მხოლოდ სურვილი არ არის საკმარისი. საჭიროა გამოცდილება, ცოდნა, პროფესიონალიზმი, ხარისხი და პასუხისმგებლობა. განსაკუთრებით ჩვენს ქალაქში, სადაც მომხმარებელი ძალიან გემოვნებიანი და მომთხოვნია. აქ ზერელედ მომზადებულ პროდუქტს ვერ შესთავაზებ ადამიანს და ვერ დაელოდები, რომ მხოლოდ სახელით ან ლამაზი შეფუთვით გამოგიცხადებს ნდობას. ნდობა უნდა დაიმსახურო!
+              </p>
+              <p>
+                ამიტომ „ნინიკა“ სპონტანური გადაწყვეტილება არ ყოფილა. ეს არის დიდი ფიქრის, მომზადების, სწავლისა და იმ სურვილის შედეგი, რომ ნინის ჰქონდეს საკუთარი ადგილი, საკუთარი საქმე და საკუთარი შესაძლებლობების დამტკიცების სივრცე.
+              </p>
+              <p>
+                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილი სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
+              </p>
+
+              <div className="bg-[#C6A265]/10 p-5 rounded-2xl border border-[#C6A265]/30 space-y-2">
+                <p className="font-[#C6A265] font-bold text-lg">„ნინიკა“ მხოლოდ ნახევარფაბრიკატების საწარმო არ არის:</p>
+                <ul className="list-disc list-inside space-y-1 pl-2">
+                  <li>ეს არის ჩემი ოჯახისგან მიღებული კულინარიული ტრადიციის გაგრძელება;</li>
+                  <li>არის ჩემი და ნინის ერთად გავლილი გზა;</li>
+                  <li>არის ჩვენი შრომა და, რაც მთავარია, ჩვენი მცდელობა, რომ ნინის ჰქონდეს თავისი საქმე, თავისი ადგილი და საკუთარი მომავლის შექმნის შესაძლებლობა.</li>
+                </ul>
+              </div>
+
+              <p>
+                ამიტომაც ჰქვია ჩვენს საწარმოს „ნინიკა“. ეს არის ჩემი გოგონას სახელი, მისი შესაძლებლობების რწმენა და ჩვენი დიდი ოცნება — ვაქციოთ ეს საქმე მის დამოუკიდებელ და ღირსეულ მომავალად.
+              </p>
+              <p className="font-semibold text-[#C6A265] italic border-l-4 border-[#C6A265] pl-4 py-1">
+                და როცა ერთ დღეს „ნინიკას“ პროდუქტს თქვენს ოჯახებში შეიტანთ, მინდა იცოდეთ, რომ თქვენ უბრალოდ ნახევარფაბრიკატს არ ყიდულობთ. თქვენ მხარს უჭერთ ერთ სიყვარულით სავსე გოგონას, რომელსაც სურს, შეძლოს დამოუკიდებლობა... და ჩვენ გვჯერა, რომ შეძლებს.
+              </p>
+
+              <div className="pt-4 text-[#C6A265] font-bold text-[#C6A265] flex flex-wrap gap-2 text-sm">
+                #ნინიკა #სიყვარულითმომზადებული #ნახევარფაბრიკატები #ოჯახურიტრადიცია #ქართულიკულინარია #დამოუკიდებელიმომავალი #გურულიგემო #ოზურგეთი
+              </div>
+            </div>
           </section>
         )}
 
+        {/* კონტაქტის სექცია */}
         {activeTab === "contact" && (
-          <section className={`${cardBgClass} p-8 rounded-3xl border shadow-xl space-y-6`}>
-            <h2 className="text-3xl font-bold text-[#C6A265] mb-4 border-b border-gold/20 pb-3 flex items-center gap-2">
-              <Phone size={28} /> დაგვიკავშირდით
+          <section className={`${cardBgClass} p-8 rounded-3xl border border-[#C6A265]/30 space-y-6 max-w-xl mx-auto shadow-2xl`}>
+            <h2 className="text-3xl font-bold text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
+              <Phone size={28} /> საკონტაქტო ინფორმაცია
             </h2>
+
             <div className="space-y-4 text-lg">
-              <p>📍 <strong>მისამართი:</strong> ქ. ოზურგეთი, სოფო მგელაძის ქუჩა, №3</p>
-              <p>📞 <strong>ტელეფონი:</strong> +995 551 50 06 06</p>
-              <p>✉️ <strong>ელ-ფოსტა:</strong> ninika.kitchen@gmail.com</p>
-              <p>⏰ <strong>სამუშაო საათები:</strong> ყოველდღე 09:00 - 19:00</p>
+              <div className="flex items-center gap-4 bg-black/20 p-4 rounded-2xl border border-[#C6A265]/20">
+                <MapPin className="text-[#C6A265]" size={24} />
+                <div>
+                  <p className="text-xs opacity-70">მისამართი</p>
+                  <p className="font-bold">ოზურგეთი, ს. მგელაძის 3</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 bg-black/20 p-4 rounded-2xl border border-[#C6A265]/20">
+                <Phone className="text-[#C6A265]" size={24} />
+                <div>
+                  <p className="text-xs opacity-70">ტელეფონი</p>
+                  <a href="tel:595085695" className="font-bold text-[#C6A265] hover:underline">595 08 56 95</a>
+                </div>
+              </div>
             </div>
           </section>
         )}
       </main>
 
+      {/* ვიდეო მოდალი */}
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#253e2f] border border-gold/30 p-4 rounded-3xl w-full max-w-2xl relative shadow-2xl">
+          <div className="bg-[#253e2f] border border-[#C6A265]/30 p-4 rounded-3xl w-full max-w-2xl relative shadow-2xl">
             <button
               onClick={() => setSelectedVideo(null)}
               className="absolute -top-3 -right-3 bg-[#C6A265] text-black p-2 rounded-full hover:bg-gold shadow-lg z-10"
@@ -251,6 +310,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* კალათის ღილაკი */}
       {cartItemCount > 0 && (
         <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-30">
           <button 
@@ -268,109 +328,6 @@ export default function Home() {
           </button>
         </div>
       )}
-
-      {isCheckoutOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-6">
-          <div className={`${cardBgClass} w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto relative border border-gold/30`}>
-            <button onClick={() => setIsCheckoutOpen(false)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white bg-black/20 rounded-full">
-              <X size={20} />
-            </button>
-            <h2 className="text-2xl font-bold mb-6 text-[#C6A265]">შეკვეთის გაფორმება</h2>
-            
-            <form onSubmit={handleSendOrder} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">სახელი</label>
-                <input 
-                  type="text" 
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-gold/30 bg-black/20 focus:outline-none focus:border-gold text-white" 
-                  placeholder="თქვენი სახელი" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-1">ტელეფონი</label>
-                <input 
-                  type="tel" 
-                  required
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full p-3 rounded-xl border border-gold/30 bg-black/20 focus:outline-none focus:border-gold text-white" 
-                  placeholder="5XX XX XX XX" 
-                />
-              </div>
-              <div className="pt-2">
-                <label className="block text-sm font-semibold mb-2">მიტანის მეთოდი</label>
-                <div className="space-y-2">
-                  <label className="flex items-center p-3 border border-gold/20 rounded-xl bg-black/10 cursor-pointer hover:border-gold">
-                    <input 
-                      type="radio" 
-                      name="delivery" 
-                      className="mr-3 accent-gold" 
-                      checked={deliveryMethod.includes("ადგილიდან")}
-                      onChange={() => setDeliveryMethod("ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)")}
-                    />
-                    <span className="text-sm">ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)</span>
-                  </label>
-                  <label className="flex items-center p-3 border border-gold/20 rounded-xl bg-black/10 cursor-pointer hover:border-gold">
-                    <input 
-                      type="radio" 
-                      name="delivery" 
-                      className="mr-3 accent-gold"
-                      checked={deliveryMethod.includes("კურიერი")}
-                      onChange={() => setDeliveryMethod("კურიერის მომსახურება")}
-                    />
-                    <span className="text-sm">კურიერის მომსახურება</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-t border-gold/20 pt-4 mt-6">
-                <div className="flex justify-between font-bold text-lg mb-4">
-                  <span>ჯამი სულ:</span>
-                  <span className="text-[#C6A265]">{cartTotal.toFixed(2)} ₾</span>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl shadow-lg hover:bg-gold transition text-lg disabled:opacity-50"
-                >
-                  {isSubmitting ? "იგზავნება..." : "შეკვეთის გაგზავნა"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <footer className="bg-black/20 py-10 mt-16 text-center border-t border-gold/10">
-        <h3 className="text-[#C6A265] font-bold mb-6 text-lg">შემოგვიერთდით სოციალურ ქსელებში</h3>
-        <div className="flex justify-center gap-6">
-          <a href="https://www.facebook.com/profile.php?id=61593903144748" target="_blank" rel="noopener noreferrer" className="hover:text-[#C6A265] transition-transform transform hover:scale-110">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-          </a>
-          <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#C6A265] transition-transform transform hover:scale-110">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-          </a>
-          <a href="https://www.youtube.com/@Ninika-ge" target="_blank" rel="noopener noreferrer" className="hover:text-[#C6A265] transition-transform transform hover:scale-110">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
-          </a>
-          <a href="https://www.tiktok.com/@ninika.kitchen" target="_blank" rel="noopener noreferrer" className="hover:text-[#C6A265] transition-transform transform hover:scale-110">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" /></svg>
-          </a>
-        </div>
-        <p className="text-sm opacity-50 mt-8">© 2026 ნინიკა. ყველა უფლება დაცულია.</p>
-      </footer>
-
-      <a
-        href="https://m.me/1302047889659335"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-28 right-6 md:bottom-6 bg-[#C6A265] text-black p-4 rounded-full shadow-2xl hover:bg-gold transition-transform transform hover:scale-110 z-40 flex items-center justify-center animate-bounce"
-      >
-        <MessageCircle size={28} />
-      </a>
     </div>
   );
 }
