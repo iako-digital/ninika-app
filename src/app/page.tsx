@@ -406,7 +406,7 @@ export default function Home() {
                 disabled={isSubmitting}
                 className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl hover:bg-gold transition text-lg mt-4 disabled:opacity-50"
               >
-                {isSubmitting ? "იგზავნება..." : "שეკვეთის დადასტურება (გაგზავნა)"}
+                {isSubmitting ? "იგზავნება..." :შეკვეთის დადასტურება (გაგზავნა)"}
               </button>
             </form>
           </div>
