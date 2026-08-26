@@ -22,7 +22,7 @@ export async function POST(request: Request) {
 
     const data = await resend.emails.send({
       from: "Ninika Kitchen <onboarding@resend.dev>",
-      to: ["ninika.kitchen@gmail.com"],
+      to: ["iakodigital@gmail.com"],
       subject: `ახალი შეკვეთა: ${name}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1A1A1A;">
