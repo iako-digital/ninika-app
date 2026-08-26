@@ -10,15 +10,19 @@ export async function POST(request: Request) {
 
     const resend = new Resend(apiKey);
     const body = await request.json();
-    const { name, phone, delivery, items, total } = body;
+    const { name, phone, delivery, items, total, receiptUrl } = body;
 
     const orderItemsHtml = items
       .map((item: any) => `<li><strong>${item.name}</strong> — ${item.quantity} ც/კგ (${(item.price * item.quantity).toFixed(2)} ₾)</li>`)
       .join("");
 
+    const receiptHtml = receiptUrl
+      ? `<p><strong>გადარიცხვის ქვითარი:</strong> <a href="${receiptUrl}" target="_blank" style="color: #C6A265; font-weight: bold;">ნახეთ ატვირთული ქვითარი</a></p>`
+      : `<p style="color: #888;">ქვითარი არ ყოფილა ატვირთული.</p>`;
+
     const data = await resend.emails.send({
       from: "Ninika Kitchen <onboarding@resend.dev>",
-      to: ["iakodigital@gmail.com"],
+      to: ["ninika.kitchen@gmail.com"],
       subject: `ახალი შეკვეთა: ${name}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1A1A1A;">
@@ -27,6 +31,7 @@ export async function POST(request: Request) {
           <p><strong>მომხმარებელი:</strong> ${name}</p>
           <p><strong>ტელეფონი:</strong> ${phone}</p>
           <p><strong>მიტანის მეთოდი:</strong> ${delivery}</p>
+          ${receiptHtml}
           <h3>შეკვეთილი პროდუქტები:</h3>
           <ul>${orderItemsHtml}</ul>
           <h3 style="color: #C6A265;">სულ ჯამი: ${total.toFixed(2)} ₾</h3>

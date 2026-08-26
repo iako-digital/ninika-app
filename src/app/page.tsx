@@ -4,10 +4,14 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
-import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
+
+// ჩაწერთ თქვენი საბანკო ანგარიშის ნომერი
+const BANK_ACCOUNT = "GE00TB0000000000000000"; 
+const BANK_NAME = "თიბისი ბანკი (შპს ნინიკა / ია გაგუა)";
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
@@ -20,6 +24,7 @@ export default function Home() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -54,6 +59,25 @@ export default function Home() {
 
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
+  // ქვითრის ატვირთვა Cloudinary-ზე
+  const uploadReceipt = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "ml_default"); // Cloudinary-ის სტანდარტული ან თქვენი პრესეტი
+
+    try {
+      const res = await fetch("https://api.cloudinary.com/v1_1/dmcabui00/image/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      return data.secure_url || "";
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      return "";
+    }
+  };
+
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName || !customerPhone) {
@@ -62,16 +86,22 @@ export default function Home() {
     }
 
     setIsSubmitting(true);
-    const cartItems = cart.map((item) => {
-      const product = products.find((p) => p.id === item.id);
-      return {
-        name: product?.name,
-        price: product?.price,
-        quantity: item.quantity,
-      };
-    });
 
     try {
+      let receiptUrl = "";
+      if (receiptFile) {
+        receiptUrl = await uploadReceipt(receiptFile);
+      }
+
+      const cartItems = cart.map((item) => {
+        const product = products.find((p) => p.id === item.id);
+        return {
+          name: product?.name,
+          price: product?.price,
+          quantity: item.quantity,
+        };
+      });
+
       const res = await fetch("/api/send-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,14 +111,16 @@ export default function Home() {
           delivery: deliveryMethod,
           items: cartItems,
           total: cartTotal,
+          receiptUrl: receiptUrl,
         }),
       });
 
       if (res.ok) {
-        alert("🎉 შეკვეთა წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
+        alert("🎉 შეკვეთა და ქვითარი წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
         setCart([]);
         setCustomerName("");
         setCustomerPhone("");
+        setReceiptFile(null);
         setIsCheckoutOpen(false);
       } else {
         alert("შეცდომა შეკვეთის გაგზავნისას.");
@@ -134,7 +166,7 @@ export default function Home() {
           alt="ნინიკა - საოჯახო სამზარეულო" 
           className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-4 hover:scale-105 transition-transform" 
         />
-        <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია</p>
+        <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია — 50 წლიანი ოჯახური ტრადიცია 🌿</p>
       </header>
 
       <main className="p-6 max-w-5xl mx-auto">
@@ -364,6 +396,27 @@ export default function Home() {
               </div>
             </div>
 
+            {/* საბანკო რეკვიზიტები */}
+            <div className="bg-black/30 p-4 rounded-2xl border border-[#C6A265]/30 mb-6 space-y-2 text-sm">
+              <p className="font-bold text-[#C6A265] flex items-center gap-2">
+                <CreditCard size={18} /> გადახდის რეკვიზიტები
+              </p>
+              <p className="text-xs opacity-80">{BANK_NAME}</p>
+              <div className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-[#C6A265]/20">
+                <span className="font-mono text-xs font-bold tracking-wider">{BANK_ACCOUNT}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(BANK_ACCOUNT);
+                    alert("ანგარიშის ნომერი დაკოპირდა!");
+                  }}
+                  className="text-xs text-[#C6A265] hover:underline font-bold"
+                >
+                  კოპირება
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleSendOrder} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">სახელი და გვარი</label>
@@ -399,6 +452,27 @@ export default function Home() {
                   <option value="ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)">ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)</option>
                   <option value="მიტანის სერვისი (ოზურგეთი)">მიტანის სერვისი (ოზურგეთი)</option>
                 </select>
+              </div>
+
+              {/* ქვითრის ატვირთვის ველები */}
+              <div>
+                <label className="block text-sm font-semibold mb-1">გადარიცხვის ქვითარი (სურვილისამებრ)</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    id="receipt-upload"
+                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="receipt-upload"
+                    className="w-full p-3 rounded-xl bg-black/20 border border-dashed border-[#C6A265]/50 hover:border-[#C6A265] text-white flex items-center justify-center gap-2 cursor-pointer transition text-sm"
+                  >
+                    <Upload size={18} className="text-[#C6A265]" />
+                    {receiptFile ? receiptFile.name : "ატვირთეთ ქვითრის ფოტო"}
+                  </label>
+                </div>
               </div>
 
               <button
