@@ -234,7 +234,7 @@ export default function Home() {
                 ამიტომ „ნინიკა“ სპონტანური გადაწყვეტილება არ ყოფილა. ეს არის დიდი ფიქრის, მომზადების, სწავლისა და იმ სურვილის შედეგი, რომ ნინის ჰქონდეს საკუთარი ადგილი, საკუთარი საქმე და საკუთარი შესაძლებლობების დამტკიცების სივრცე.
               </p>
               <p>
-                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილი სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
+                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილები სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
               </p>
 
               <div className="bg-[#C6A265]/10 p-5 rounded-2xl border border-[#C6A265]/30 space-y-2">
@@ -253,7 +253,7 @@ export default function Home() {
                 და როცა ერთ დღეს „ნინიკას“ პროდუქტს თქვენს ოჯახებში შეიტანთ, მინდა იცოდეთ, რომ თქვენ უბრალოდ ნახევარფაბრიკატს არ ყიდულობთ. თქვენ მხარს უჭერთ ერთ სიყვარულით სავსე გოგონას, რომელსაც სურს, შეძლოს დამოუკიდებლობა... და ჩვენ გვჯერა, რომ შეძლებს.
               </p>
 
-              <div className="pt-4 text-[#C6A265] font-bold text-[#C6A265] flex flex-wrap gap-2 text-sm">
+              <div className="pt-4 text-[#C6A265] font-bold flex flex-wrap gap-2 text-sm">
                 #ნინიკა #სიყვარულითმომზადებული #ნახევარფაბრიკატები #ოჯახურიტრადიცია #ქართულიკულინარია #დამოუკიდებელიმომავალი #გურულიგემო #ოზურგეთი
               </div>
             </div>
@@ -326,6 +326,90 @@ export default function Home() {
             <span className="font-bold flex-1 text-left">კალათის ნახვა</span>
             <span className="font-extrabold">{cartTotal.toFixed(2)} ₾</span>
           </button>
+        </div>
+      )}
+
+      {/* კალათის / შეკვეთის მოდალური ფანჯარა */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#253e2f] text-white border border-[#C6A265]/30 p-6 md:p-8 rounded-3xl w-full max-w-lg relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsCheckoutOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+            >
+              <X size={24} />
+            </button>
+
+            <h2 className="text-2xl font-bold text-[#C6A265] mb-6 flex items-center gap-2">
+              <ShoppingBag size={24} /> თქვენი შეკვეთა
+            </h2>
+
+            <div className="space-y-3 mb-6 border-b border-[#C6A265]/20 pb-4">
+              {cart.map((item) => {
+                const product = products.find((p) => p.id === item.id);
+                if (!product) return null;
+                return (
+                  <div key={item.id} className="flex justify-between items-center text-sm">
+                    <div>
+                      <span className="font-bold">{product.name}</span>
+                      <span className="text-gray-400 text-xs ml-2">({item.quantity} x {product.price.toFixed(2)} ₾)</span>
+                    </div>
+                    <span className="font-bold text-[#C6A265]">{(product.price * item.quantity).toFixed(2)} ₾</span>
+                  </div>
+                );
+              })}
+              <div className="flex justify-between items-center text-lg font-bold text-[#C6A265] pt-2">
+                <span>სულ ჯამი:</span>
+                <span>{cartTotal.toFixed(2)} ₾</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSendOrder} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">სახელი და გვარი</label>
+                <input
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="მაგ: გიორგი გიორგაძე"
+                  className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">ტელეფონის ნომერი</label>
+                <input
+                  type="tel"
+                  required
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="595 00 00 00"
+                  className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">მიღების მეთოდი</label>
+                <select
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none"
+                >
+                  <option value="ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)">ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)</option>
+                  <option value="მიტანის სერვისი (ოზურგეთი)">მიტანის სერვისი (ოზურგეთი)</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl hover:bg-gold transition text-lg mt-4 disabled:opacity-50"
+              >
+                {isSubmitting ? "იგზავნება..." : "שეკვეთის დადასტურება (გაგზავნა)"}
+              </button>
+            </form>
+          </div>
         </div>
       )}
     </div>
