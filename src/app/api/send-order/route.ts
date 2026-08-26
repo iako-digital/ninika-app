@@ -5,6 +5,7 @@ export async function POST(request: Request) {
   try {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
+      console.error("Missing RESEND_API_KEY");
       return NextResponse.json({ success: false, error: "Missing RESEND_API_KEY" }, { status: 500 });
     }
 
@@ -20,8 +21,8 @@ export async function POST(request: Request) {
       ? `<p><strong>გადარიცხვის ქვითარი:</strong> <a href="${receiptUrl}" target="_blank" style="color: #C6A265; font-weight: bold;">ნახეთ ატვირთული ქვითარი</a></p>`
       : `<p style="color: #888;">ქვითარი არ ყოფილა ატვირთული.</p>`;
 
-    const data = await resend.emails.send({
-      from: "Ninika Kitchen <onboarding@resend.dev>",
+    const { data, error } = await resend.emails.send({
+      from: "onboarding@resend.dev",
       to: ["iakodigital@gmail.com"],
       subject: `ახალი შეკვეთა: ${name}`,
       html: `
@@ -39,8 +40,14 @@ export async function POST(request: Request) {
       `,
     });
 
+    if (error) {
+      console.error("Resend API Error:", error);
+      return NextResponse.json({ success: false, error }, { status: 400 });
+    }
+
     return NextResponse.json({ success: true, data });
-  } catch (error) {
-    return NextResponse.json({ success: false, error }, { status: 500 });
+  } catch (error: any) {
+    console.error("Server Catch Error:", error);
+    return NextResponse.json({ success: false, error: error?.message || error }, { status: 500 });
   }
 }
