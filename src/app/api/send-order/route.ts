@@ -5,20 +5,26 @@ export async function POST(request: Request) {
   try {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      console.error("Missing RESEND_API_KEY");
       return NextResponse.json({ success: false, error: "Missing RESEND_API_KEY" }, { status: 500 });
     }
 
     const resend = new Resend(apiKey);
     const body = await request.json();
-    const { name, phone, delivery, items, total, receiptUrl } = body;
+    const { name, phone, delivery, payment, items, total, receiptBase64, receiptName } = body;
 
     const orderItemsHtml = items
       .map((item: any) => `<li><strong>${item.name}</strong> — ${item.quantity} ც/კგ (${(item.price * item.quantity).toFixed(2)} ₾)</li>`)
       .join("");
 
-    const receiptHtml = receiptUrl
-      ? `<p><strong>გადარიცხვის ქვითარი:</strong> <a href="${receiptUrl}" target="_blank" style="color: #C6A265; font-weight: bold;">ნახეთ ატვირთული ქვითარი</a></p>`
+    const attachments = receiptBase64 && receiptName ? [
+      {
+        filename: receiptName,
+        content: receiptBase64.split(",")[1] || receiptBase64,
+      }
+    ] : [];
+
+    const receiptHtml = receiptBase64
+      ? `<p style="color: #2A4533; font-weight: bold;">📎 ქვითარი თან დაერთვის ამ წერილს (ფაილის სახით).</p>`
       : `<p style="color: #888;">ქვითარი არ ყოფილა ატვირთული.</p>`;
 
     const { data, error } = await resend.emails.send({
@@ -32,22 +38,22 @@ export async function POST(request: Request) {
           <p><strong>მომხმარებელი:</strong> ${name}</p>
           <p><strong>ტელეფონი:</strong> ${phone}</p>
           <p><strong>მიტანის მეთოდი:</strong> ${delivery}</p>
-          ${receiptHtml}
+          <p><strong>გადახდის მეთოდი:</strong> ${payment || "ადგილზე გადახდა"}</p>
+          ${payment?.includes("ანგარიშის") ? receiptHtml : ""}
           <h3>შეკვეთილი პროდუქტები:</h3>
           <ul>${orderItemsHtml}</ul>
           <h3 style="color: #C6A265;">სულ ჯამი: ${total.toFixed(2)} ₾</h3>
         </div>
       `,
+      attachments: attachments,
     });
 
     if (error) {
-      console.error("Resend API Error:", error);
       return NextResponse.json({ success: false, error }, { status: 400 });
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error("Server Catch Error:", error);
     return NextResponse.json({ success: false, error: error?.message || error }, { status: 500 });
   }
 }

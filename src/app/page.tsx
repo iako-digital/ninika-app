@@ -9,7 +9,6 @@ import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
 
-// ჩაწერთ თქვენი საბანკო ანგარიშის ნომერი
 const BANK_ACCOUNT = "GE00TB0000000000000000"; 
 const BANK_NAME = "თიბისი ბანკი (შპს ნინიკა / ლელა საჯაია)";
 
@@ -24,6 +23,7 @@ export default function Home() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)");
+  const [paymentMethod, setPaymentMethod] = useState("ადგილზე გადახდა (ნაღდი/ბარათი)");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,25 +59,6 @@ export default function Home() {
 
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  // ქვითრის ატვირთვა Cloudinary-ზე
-  const uploadReceipt = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "ml_default"); // Cloudinary-ის სტანდარტული ან თქვენი პრესეტი
-
-    try {
-      const res = await fetch("https://api.cloudinary.com/v1_1/dmcabui00/image/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      return data.secure_url || "";
-    } catch (err) {
-      console.error("Cloudinary upload error:", err);
-      return "";
-    }
-  };
-
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName || !customerPhone) {
@@ -88,9 +69,17 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      let receiptUrl = "";
-      if (receiptFile) {
-        receiptUrl = await uploadReceipt(receiptFile);
+      let receiptBase64 = "";
+      let receiptName = "";
+
+      if (paymentMethod.includes("ანგარიშის") && receiptFile) {
+        receiptName = receiptFile.name;
+        receiptBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(receiptFile);
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = (error) => reject(error);
+        });
       }
 
       const cartItems = cart.map((item) => {
@@ -109,14 +98,16 @@ export default function Home() {
           name: customerName,
           phone: customerPhone,
           delivery: deliveryMethod,
+          payment: paymentMethod,
           items: cartItems,
           total: cartTotal,
-          receiptUrl: receiptUrl,
+          receiptBase64: receiptBase64,
+          receiptName: receiptName,
         }),
       });
 
       if (res.ok) {
-        alert("🎉 შეკვეთა და ქვითარი წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
+        alert("🎉 შეკვეთა წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
         setCart([]);
         setCustomerName("");
         setCustomerPhone("");
@@ -170,7 +161,6 @@ export default function Home() {
       </header>
 
       <main className="p-6 max-w-5xl mx-auto">
-        {/* მენიუს სექცია */}
         {activeTab === "menu" && (
           <section>
             <h2 className="text-3xl font-bold mb-8 text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
@@ -224,7 +214,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* ჩვენს შესახებ სექცია */}
         {activeTab === "about" && (
           <section className={`${cardBgClass} p-6 md:p-10 rounded-3xl border border-[#C6A265]/30 space-y-6 max-w-3xl mx-auto shadow-2xl`}>
             <div className="w-full overflow-hidden rounded-2xl border border-[#C6A265]/30 shadow-lg mb-6">
@@ -292,7 +281,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* კონტაქტის სექცია */}
         {activeTab === "contact" && (
           <section className={`${cardBgClass} p-8 rounded-3xl border border-[#C6A265]/30 space-y-6 max-w-xl mx-auto shadow-2xl`}>
             <h2 className="text-3xl font-bold text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
@@ -320,7 +308,6 @@ export default function Home() {
         )}
       </main>
 
-      {/* ვიდეო მოდალი */}
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#253e2f] border border-[#C6A265]/30 p-4 rounded-3xl w-full max-w-2xl relative shadow-2xl">
@@ -342,7 +329,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* კალათის ღილაკი */}
       {cartItemCount > 0 && (
         <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-30">
           <button 
@@ -361,7 +347,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* კალათის / შეკვეთის მოდალური ფანჯარა */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#253e2f] text-white border border-[#C6A265]/30 p-6 md:p-8 rounded-3xl w-full max-w-lg relative shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -393,27 +378,6 @@ export default function Home() {
               <div className="flex justify-between items-center text-lg font-bold text-[#C6A265] pt-2">
                 <span>სულ ჯამი:</span>
                 <span>{cartTotal.toFixed(2)} ₾</span>
-              </div>
-            </div>
-
-            {/* საბანკო რეკვიზიტები */}
-            <div className="bg-black/30 p-4 rounded-2xl border border-[#C6A265]/30 mb-6 space-y-2 text-sm">
-              <p className="font-bold text-[#C6A265] flex items-center gap-2">
-                <CreditCard size={18} /> გადახდის რეკვიზიტები
-              </p>
-              <p className="text-xs opacity-80">{BANK_NAME}</p>
-              <div className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-[#C6A265]/20">
-                <span className="font-mono text-xs font-bold tracking-wider">{BANK_ACCOUNT}</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(BANK_ACCOUNT);
-                    alert("ანგარიშის ნომერი დაკოპირდა!");
-                  }}
-                  className="text-xs text-[#C6A265] hover:underline font-bold"
-                >
-                  კოპირება
-                </button>
               </div>
             </div>
 
@@ -454,26 +418,61 @@ export default function Home() {
                 </select>
               </div>
 
-              {/* ქვითრის ატვირთვის ველები */}
               <div>
-                <label className="block text-sm font-semibold mb-1">გადარიცხვის ქვითარი (სურვილისამებრ)</label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*,.pdf"
-                    id="receipt-upload"
-                    onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                  <label
-                    htmlFor="receipt-upload"
-                    className="w-full p-3 rounded-xl bg-black/20 border border-dashed border-[#C6A265]/50 hover:border-[#C6A265] text-white flex items-center justify-center gap-2 cursor-pointer transition text-sm"
-                  >
-                    <Upload size={18} className="text-[#C6A265]" />
-                    {receiptFile ? receiptFile.name : "ატვირთეთ ქვითრის ფოტო"}
-                  </label>
-                </div>
+                <label className="block text-sm font-semibold mb-1">გადახდის მეთოდი</label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none font-semibold text-[#C6A265]"
+                >
+                  <option value="ადგილზე გადახდა (ნაღდი/ბარათი)">💵 ადგილზე გადახდა (ნაღდი / ბარათი)</option>
+                  <option value="ანგარიშის ნომერზე გადარიცხვა">💳 ანგარიშის ნომერზე გადარიცხვა</option>
+                </select>
               </div>
+
+              {paymentMethod.includes("ანგარიშის") && (
+                <div className="space-y-4 pt-2 border-t border-[#C6A265]/20">
+                  <div className="bg-black/30 p-4 rounded-2xl border border-[#C6A265]/30 space-y-2 text-sm">
+                    <p className="font-bold text-[#C6A265] flex items-center gap-2">
+                      <CreditCard size={18} /> გადახდის რეკვიზიტები
+                    </p>
+                    <p className="text-xs opacity-80">{BANK_NAME}</p>
+                    <div className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-[#C6A265]/20">
+                      <span className="font-mono text-xs font-bold tracking-wider">{BANK_ACCOUNT}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(BANK_ACCOUNT);
+                          alert("ანგარიშის ნომერი დაკოპირდა!");
+                        }}
+                        className="text-xs text-[#C6A265] hover:underline font-bold"
+                      >
+                        კოპირება
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold mb-1">გადარიცხვის ქვითარი (სურვილისამებრ)</label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        id="receipt-upload"
+                        onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="receipt-upload"
+                        className="w-full p-3 rounded-xl bg-black/20 border border-dashed border-[#C6A265]/50 hover:border-[#C6A265] text-white flex items-center justify-center gap-2 cursor-pointer transition text-sm"
+                      >
+                        <Upload size={18} className="text-[#C6A265]" />
+                        {receiptFile ? receiptFile.name : "ატვირთეთ ქვითრის ფოტო"}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 type="submit"
