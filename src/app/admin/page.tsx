@@ -3,10 +3,12 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Edit, Trash2 } from "lucide-react";
+import { toEmbedUrl } from "@/lib/video";
+import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
 
@@ -16,6 +18,7 @@ export default function AdminPage() {
   const [unit, setUnit] = useState("ცალი");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -76,6 +79,7 @@ export default function AdminPage() {
       unit,
       description,
       image: imageUrl || "https://images.unsplash.com/photo-1556761223-4c4282c73f77?q=80&w=600",
+      video_url: videoUrl ? toEmbedUrl(videoUrl) : null,
     };
 
     if (editingId) {
@@ -99,6 +103,7 @@ export default function AdminPage() {
     setUnit(product.unit);
     setDescription(product.description || "");
     setImageUrl(product.image || "");
+    setVideoUrl(product.video_url || "");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -117,6 +122,7 @@ export default function AdminPage() {
     setUnit("ცალი");
     setDescription("");
     setImageUrl("");
+    setVideoUrl("");
   };
 
   if (!isAuthenticated) {
@@ -124,13 +130,24 @@ export default function AdminPage() {
       <div className="min-h-screen bg-[#1b2e23] text-white flex items-center justify-center p-6">
         <form onSubmit={handleLogin} className="bg-[#253e2f] p-8 rounded-3xl border border-gold/30 w-full max-w-sm space-y-4">
           <h2 className="text-2xl font-bold text-[#C6A265] text-center">ადმინ პანელი</h2>
-          <input 
-            type="password" 
-            placeholder="შეიყვანეთ პაროლი" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white focus:outline-none"
-          />
+          
+          <div className="relative">
+            <input 
+              type={showPassword ? "text" : "password"} 
+              placeholder="შეიყვანეთ პაროლი" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 pr-10 rounded-xl bg-black/20 border border-gold/30 text-white focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C6A265] hover:text-white transition"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+
           <button type="submit" className="w-full bg-[#C6A265] text-black font-bold py-3 rounded-xl hover:bg-gold">
             შესვლა
           </button>
@@ -188,6 +205,17 @@ export default function AdminPage() {
               <img src={imageUrl} alt="Uploaded" className="h-32 rounded-xl object-cover border border-gold/30" />
             </div>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-1">მომზადების ვიდეო (არასავალდებულო)</label>
+          <input
+            type="text"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white"
+            placeholder="YouTube ბმული, მაგ: https://www.youtube.com/watch?v=..."
+          />
         </div>
 
         <button type="submit" className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl hover:bg-gold transition text-lg">

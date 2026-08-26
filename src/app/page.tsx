@@ -2,7 +2,8 @@
 export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { ShoppingBag, Plus, Minus, X, MessageCircle, Sun, Moon, Utensils, Heart, Phone } from "lucide-react";
+import { toEmbedUrl } from "@/lib/video";
+import { ShoppingBag, Plus, Minus, X, MessageCircle, Sun, Moon, Utensils, Heart, Phone, Play } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 
@@ -12,6 +13,7 @@ export default function Home() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [activeTab, setActiveTab] = useState<"menu" | "about" | "contact">("menu");
+  const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -165,6 +167,15 @@ export default function Home() {
                         <p className={`text-sm ${textMutedClass} mb-4 leading-relaxed`}>
                           {product.description}
                         </p>
+
+                        {product.video_url && (
+                          <button
+                            onClick={() => setSelectedVideo(toEmbedUrl(product.video_url))}
+                            className="mb-4 flex items-center gap-2 text-xs font-bold text-[#C6A265] bg-gold/10 hover:bg-gold/20 px-3 py-2 rounded-xl border border-gold/30 transition w-full justify-center"
+                          >
+                            <Play size={14} fill="currentColor" /> მომზადების წესი (ვიდეო)
+                          </button>
+                        )}
                       </div>
                       
                       <div className="mt-auto flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-gold/30">
@@ -218,6 +229,27 @@ export default function Home() {
           </section>
         )}
       </main>
+
+      {selectedVideo && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#253e2f] border border-gold/30 p-4 rounded-3xl w-full max-w-2xl relative shadow-2xl">
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute -top-3 -right-3 bg-[#C6A265] text-black p-2 rounded-full hover:bg-gold shadow-lg z-10"
+            >
+              <X size={20} />
+            </button>
+            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black">
+              <iframe
+                src={selectedVideo}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      )}
 
       {cartItemCount > 0 && (
         <div className="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-30">
