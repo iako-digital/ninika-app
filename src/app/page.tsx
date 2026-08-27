@@ -32,6 +32,22 @@ export default function Home() {
 
   useEffect(() => {
     fetchProducts();
+
+    // Supabase Realtime - ადმინიდან გაკეთებული ცვლილებების მყისიერი ასახვა
+    const channel = supabase
+      .channel("products_realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => {
+          fetchProducts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchProducts = async () => {
