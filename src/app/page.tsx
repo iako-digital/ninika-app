@@ -20,6 +20,9 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"menu" | "about" | "contact">("menu");
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
+  // კატეგორიის ფილტრი
+  const [selectedCategory, setSelectedCategory] = useState<string>("ყველა");
+
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)");
@@ -59,8 +62,17 @@ export default function Home() {
 
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
-  // ამოწმებს, აკლია თუ არა ქვითარი ანგარიშზე გადარიცხვისას
   const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
+
+  // კატეგორიით გაფილტვრის ლოგიკა
+  const filteredProducts = products.filter((p) => {
+    if (selectedCategory === "ყველა") return true;
+    if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი");
+    if (selectedCategory === "პელმენი / ვარენიკი") return p.name.includes("პელმენი") || p.name.includes("ვარენიკი");
+    if (selectedCategory === "კოტლეტი / ქაბაბი") return p.name.includes("კოტლეტი") || p.name.includes("ქაბაბი") || p.name.includes("გუფთა");
+    if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს");
+    return true;
+  });
 
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,48 +151,68 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bgClass} pb-24 font-sans transition-colors duration-300 relative`}>
-      <nav className={`${headerBgClass} sticky top-0 z-40 px-6 py-3 shadow-md flex justify-between items-center border-b border-[#C6A265]/20`}>
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab("menu")}>
-          <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-10 w-10 rounded-full object-cover border border-[#C6A265]" />
-          <span className="text-xl font-bold tracking-widest text-[#C6A265]">ნინიკა</span>
+      {/* გასწორებული ნავიგაცია — მობილურზე ტექსტები აღარ გადაედება ერთმანეთს */}
+      <nav className={`${headerBgClass} sticky top-0 z-40 px-4 md:px-6 py-3 shadow-md flex items-center justify-between border-b border-[#C6A265]/20`}>
+        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("menu")}>
+          <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover border border-[#C6A265]" />
+          <span className="text-lg md:text-xl font-bold tracking-wider text-[#C6A265]">ნინიკა</span>
         </div>
         
-        <div className="flex gap-6 text-sm font-semibold">
-          <button onClick={() => setActiveTab("menu")} className={`transition ${activeTab === "menu" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>მენიუ</button>
-          <button onClick={() => setActiveTab("about")} className={`transition ${activeTab === "about" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>ჩვენს შესახებ</button>
-          <button onClick={() => setActiveTab("contact")} className={`transition ${activeTab === "contact" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>კონტაქტი</button>
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-semibold">
+          <button onClick={() => setActiveTab("menu")} className={`py-1 transition whitespace-nowrap ${activeTab === "menu" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>მენიუ</button>
+          <button onClick={() => setActiveTab("about")} className={`py-1 transition whitespace-nowrap ${activeTab === "about" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>ჩვენს შესახებ</button>
+          <button onClick={() => setActiveTab("contact")} className={`py-1 transition whitespace-nowrap ${activeTab === "contact" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>კონტაქტი</button>
         </div>
 
         <button 
           onClick={() => setDarkMode(!darkMode)} 
-          className="p-2.5 rounded-full bg-[#C6A265]/20 hover:bg-[#C6A265]/30 text-[#C6A265] transition"
+          className="p-2 rounded-full bg-[#C6A265]/20 hover:bg-[#C6A265]/30 text-[#C6A265] transition shrink-0 ml-1"
         >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          {darkMode ? <Sun size={18} /> : <Moon size={18} />}
         </button>
       </nav>
 
-      <header className={`${headerBgClass} text-center py-10 px-6 shadow-inner border-b border-[#C6A265]/10 flex flex-col items-center`}>
+      <header className={`${headerBgClass} text-center py-8 px-4 shadow-inner border-b border-[#C6A265]/10 flex flex-col items-center`}>
         <img 
           src={LOGO_URL} 
           alt="ნინიკა - საოჯახო სამზარეულო" 
-          className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-4 hover:scale-105 transition-transform" 
+          className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-3 hover:scale-105 transition-transform" 
         />
-        <p className="text-[#C6A265] text-lg md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია!</p>
+        <p className="text-[#C6A265] text-base md:text-xl italic max-w-xl">მეტი, ვიდრე უბრალოდ კულინარია!</p>
       </header>
 
-      <main className="p-6 max-w-5xl mx-auto">
+      <main className="p-4 md:p-6 max-w-5xl mx-auto">
         {activeTab === "menu" && (
           <section>
-            <h2 className="text-3xl font-bold mb-8 text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
-              <Utensils size={28} /> ჩვენი მენიუ
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 border-b border-[#C6A265]/20 pb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-[#C6A265] flex items-center gap-2">
+                <Utensils size={28} /> ჩვენი მენიუ
+              </h2>
 
-            {products.length === 0 ? (
-              <p className="text-center text-lg py-12 opacity-70">პროდუქტები იტვირთება...</p>
+              {/* კატეგორიებით დახარისხება/ფილტრი */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+                {["ყველა", "ხინკალი", "პელმენი / ვარენიკი", "კოტლეტი / ქაბაბი", "სამარხვო"].map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap transition border ${
+                      selectedCategory === category
+                        ? "bg-[#C6A265] text-black border-[#C6A265]"
+                        : "bg-black/20 text-white/80 border-white/10 hover:border-[#C6A265]/50"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <p className="text-center text-lg py-12 opacity-70">პროდუქტები არ მოიძებნა...</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {products.map((product) => (
-                  <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.02] transition-transform duration-200`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200`}>
                     <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
                     
                     <div className="p-5 flex-1 flex flex-col justify-between">
@@ -263,7 +295,7 @@ export default function Home() {
                 ამიტომ „ნინიკა“ სპონტანური გადაწყვეტილება არ ყოფილა. ეს არის დიდი ფიქრის, მომზადების, სწავლისა და იმ სურვილის შედეგი, რომ ნინის ჰქონდეს საკუთარი ადგილი, საკუთარი საქმე და საკუთარი შესაძლებლობების დამტკიცების სივრცე.
               </p>
               <p>
-                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილები სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
+                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილი სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
               </p>
 
               <div className="bg-[#C6A265]/10 p-5 rounded-2xl border border-[#C6A265]/30 space-y-2">
