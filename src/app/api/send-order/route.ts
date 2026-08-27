@@ -28,8 +28,8 @@ export async function POST(request: Request) {
       : `<p style="color: #888;">ქვითარი არ ყოფილა ატვირთული.</p>`;
 
     const { data, error } = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: ["iakodigital@gmail.com"],
+      from: "ნინიკა <orders@ninika.ge>",
+      to: ["ninika.kitchen@gmail.com"],
       subject: `ახალი შეკვეთა: ${name}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1A1A1A;">
