@@ -6,6 +6,13 @@ import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 
+const AVAILABLE_CATEGORIES = [
+  "ხინკალი",
+  "პელმენი / ვარენიკი",
+  "კოტლეტი / ქაბაბი",
+  "სამარხვო",
+];
+
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +23,7 @@ export default function AdminPage() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState("ცალი");
+  const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
@@ -40,6 +48,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthenticated) fetchProducts();
   }, [isAuthenticated]);
+
+  const handleCategoryToggle = (cat: string) => {
+    setCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,6 +91,7 @@ export default function AdminPage() {
       name,
       price: parseFloat(price),
       unit,
+      categories,
       description,
       image: imageUrl || "https://images.unsplash.com/photo-1556761223-4c4282c73f77?q=80&w=600",
       video_url: videoUrl ? toEmbedUrl(videoUrl) : null,
@@ -101,6 +116,7 @@ export default function AdminPage() {
     setName(product.name);
     setPrice(product.price.toString());
     setUnit(product.unit);
+    setCategories(Array.isArray(product.categories) ? product.categories : []);
     setDescription(product.description || "");
     setImageUrl(product.image || "");
     setVideoUrl(product.video_url || "");
@@ -120,6 +136,7 @@ export default function AdminPage() {
     setName("");
     setPrice("");
     setUnit("ცალი");
+    setCategories([]);
     setDescription("");
     setImageUrl("");
     setVideoUrl("");
@@ -191,6 +208,30 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* კატეგორიების არჩევა ჩექბოქსებით */}
+        <div>
+          <label className="block text-sm font-semibold mb-2">კატეგორიები (შეგიძლიათ აირჩიოთ რამდენიმე):</label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {AVAILABLE_CATEGORIES.map((cat) => {
+              const isSelected = categories.includes(cat);
+              return (
+                <button
+                  type="button"
+                  key={cat}
+                  onClick={() => handleCategoryToggle(cat)}
+                  className={`p-2.5 rounded-xl text-xs font-bold border text-center transition ${
+                    isSelected
+                      ? "bg-[#C6A265] text-black border-[#C6A265]"
+                      : "bg-black/20 text-white/70 border-white/10 hover:border-[#C6A265]/40"
+                  }`}
+                >
+                  {isSelected ? "✓ " : ""}{cat}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-semibold mb-1">აღწერა</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white h-24" placeholder="მოკლე აღწერა..." />
@@ -232,6 +273,11 @@ export default function AdminPage() {
               <div className="flex-1">
                 <h3 className="font-bold text-lg">{p.name}</h3>
                 <p className="text-[#C6A265] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>
+                {Array.isArray(p.categories) && p.categories.length > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    🏷️ {p.categories.join(", ")}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <button onClick={() => handleEdit(p)} className="p-2 bg-gold/20 hover:bg-gold/40 text-[#C6A265] rounded-lg">

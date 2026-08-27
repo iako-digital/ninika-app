@@ -151,14 +151,13 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bgClass} pb-24 font-sans transition-colors duration-300 relative`}>
-      {/* გასწორებული ნავიგაცია — მობილურზე ტექსტები აღარ გადაედება ერთმანეთს */}
+      {/* გასწორებული ნავიგაცია — ტექსტი "ნინიკა" ამოღებულია, მხოლოდ ლოგოა */}
       <nav className={`${headerBgClass} sticky top-0 z-40 px-4 md:px-6 py-3 shadow-md flex items-center justify-between border-b border-[#C6A265]/20`}>
-        <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => setActiveTab("menu")}>
-          <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-9 w-9 md:h-10 md:w-10 rounded-full object-cover border border-[#C6A265]" />
-          <span className="text-lg md:text-xl font-bold tracking-wider text-[#C6A265]">ნინიკა</span>
+        <div className="flex items-center cursor-pointer shrink-0" onClick={() => setActiveTab("menu")}>
+          <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-10 w-10 md:h-11 md:w-11 rounded-full object-cover border border-[#C6A265]" />
         </div>
         
-        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-semibold">
+        <div className="flex items-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base font-semibold">
           <button onClick={() => setActiveTab("menu")} className={`py-1 transition whitespace-nowrap ${activeTab === "menu" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>მენიუ</button>
           <button onClick={() => setActiveTab("about")} className={`py-1 transition whitespace-nowrap ${activeTab === "about" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>ჩვენს შესახებ</button>
           <button onClick={() => setActiveTab("contact")} className={`py-1 transition whitespace-nowrap ${activeTab === "contact" ? "text-[#C6A265] border-b-2 border-[#C6A265]" : "hover:text-[#C6A265]"}`}>კონტაქტი</button>
@@ -195,7 +194,7 @@ export default function Home() {
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap transition border ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap transition border ${
                       selectedCategory === category
                         ? "bg-[#C6A265] text-black border-[#C6A265]"
                         : "bg-black/20 text-white/80 border-white/10 hover:border-[#C6A265]/50"
