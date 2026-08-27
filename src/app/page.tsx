@@ -59,10 +59,18 @@ export default function Home() {
 
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
+  // ამოწმებს, აკლია თუ არა ქვითარი ანგარიშზე გადარიცხვისას
+  const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
+
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName || !customerPhone) {
       alert("გთხოვთ შეავსოთ სახელი და ტელეფონის ნომერი!");
+      return;
+    }
+
+    if (isReceiptMissing) {
+      alert("გთხოვთ ატვირთოთ გადარიცხვის ქვითარი!");
       return;
     }
 
@@ -255,7 +263,7 @@ export default function Home() {
                 ამიტომ „ნინიკა“ სპონტანური გადაწყვეტილება არ ყოფილა. ეს არის დიდი ფიქრის, მომზადების, სწავლისა და იმ სურვილის შედეგი, რომ ნინის ჰქონდეს საკუთარი ადგილი, საკუთარი საქმე და საკუთარი შესაძლებლობების დამტკიცების სივრცე.
               </p>
               <p>
-                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილი სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
+                ჯერ კიდევ ბევრი რამ გვაქვს გასაკეთებელი, ბევრი დეტალია დასაორგანიზებელი და დასახვეწი, რომ ჩვენს საწარმოს ის სრულყოფილები სახე მივცეთ, როგორსაც წარმოვიდგენთ. მაგრამ უკვე შეგვიძლია, თავდაჯერებულად წარვდგეთ თქვენ წინაშე.
               </p>
 
               <div className="bg-[#C6A265]/10 p-5 rounded-2xl border border-[#C6A265]/30 space-y-2">
@@ -404,6 +412,9 @@ export default function Home() {
                   placeholder="595 00 00 00"
                   className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none"
                 />
+                <p className="text-xs text-amber-300 mt-1">
+                  ⚠️ გთხოვთ, ყურადღებით შეამოწმოთ ნომერი — შეკვეთის დასადასტურებლად დაგიკავშირდებით.
+                </p>
               </div>
 
               <div>
@@ -453,7 +464,9 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1">გადარიცხვის ქვითარი (სურვილისამებრ)</label>
+                    <label className="block text-sm font-semibold mb-1">
+                      გადარიცხვის ქვითარი <span className="text-[#C6A265] font-bold">(აუცილებელია)</span>
+                    </label>
                     <div className="relative">
                       <input
                         type="file"
@@ -464,22 +477,39 @@ export default function Home() {
                       />
                       <label
                         htmlFor="receipt-upload"
-                        className="w-full p-3 rounded-xl bg-black/20 border border-dashed border-[#C6A265]/50 hover:border-[#C6A265] text-white flex items-center justify-center gap-2 cursor-pointer transition text-sm"
+                        className={`w-full p-3 rounded-xl border border-dashed text-white flex items-center justify-center gap-2 cursor-pointer transition text-sm ${
+                          !receiptFile 
+                            ? "bg-red-500/10 border-red-400 hover:border-red-300" 
+                            : "bg-black/20 border-[#C6A265]/50 hover:border-[#C6A265]"
+                        }`}
                       >
                         <Upload size={18} className="text-[#C6A265]" />
                         {receiptFile ? receiptFile.name : "ატვირთეთ ქვითრის ფოტო"}
                       </label>
                     </div>
+                    {isReceiptMissing && (
+                      <p className="text-xs text-red-400 mt-1 font-medium">
+                        * ქვითრის აუტვირთავად შეკვეთას ვერ გააგზავნით.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl hover:bg-gold transition text-lg mt-4 disabled:opacity-50"
+                disabled={isSubmitting || isReceiptMissing}
+                className={`w-full font-extrabold py-4 rounded-xl transition text-lg mt-4 shadow-lg ${
+                  isSubmitting || isReceiptMissing
+                    ? "bg-gray-500/50 text-gray-300 cursor-not-allowed opacity-60"
+                    : "bg-[#C6A265] hover:bg-gold text-black cursor-pointer hover:scale-[1.01]"
+                }`}
               >
-                {isSubmitting ? "იგზავნება..." : "შეკვეთის დადასტურება (გაგზავნა)"}
+                {isSubmitting 
+                  ? "იგზავნება..." 
+                  : isReceiptMissing 
+                    ? "ატვირთეთ ქვითარი" 
+                    : "შეკვეთის დადასტურება (გაგზავნა)"}
               </button>
             </form>
           </div>
