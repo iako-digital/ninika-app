@@ -20,7 +20,6 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"menu" | "about" | "contact">("menu");
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
-  // კატეგორიის ფილტრი
   const [selectedCategory, setSelectedCategory] = useState<string>("ყველა");
 
   const [customerName, setCustomerName] = useState("");
@@ -33,7 +32,6 @@ export default function Home() {
   useEffect(() => {
     fetchProducts();
 
-    // Supabase Realtime - ადმინიდან გაკეთებული ცვლილებების მყისიერი ასახვა
     const channel = supabase
       .channel("products_realtime")
       .on(
@@ -80,7 +78,6 @@ export default function Home() {
 
   const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
 
-  // კატეგორიით გაფილტვრის ლოგიკა
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === "ყველა") return true;
     if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი");
@@ -167,7 +164,6 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${bgClass} pb-24 font-sans transition-colors duration-300 relative`}>
-      {/* გასწორებული ნავიგაცია — ტექსტი "ნინიკა" ამოღებულია, მხოლოდ ლოგოა */}
       <nav className={`${headerBgClass} sticky top-0 z-40 px-4 md:px-6 py-3 shadow-md flex items-center justify-between border-b border-[#C6A265]/20`}>
         <div className="flex items-center cursor-pointer shrink-0" onClick={() => setActiveTab("menu")}>
           <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-10 w-10 md:h-11 md:w-11 rounded-full object-cover border border-[#C6A265]" />
@@ -204,7 +200,6 @@ export default function Home() {
                 <Utensils size={28} /> ჩვენი მენიუ
               </h2>
 
-              {/* კატეგორიებით დახარისხება/ფილტრი */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
                 {["ყველა", "ხინკალი", "პელმენი / ვარენიკი", "კოტლეტი / ქაბაბი", "სამარხვო"].map((category) => (
                   <button

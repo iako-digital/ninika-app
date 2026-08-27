@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   title: "ნინიკა • საოჯახო სამზარეულო",
   description: "ნახევარფაბრიკატების საოჯახო საწარმო — ოჯახური სითბო და ხარისხი შენს თეფშზე",
   icons: {
-    icon: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
-    shortcut: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
-    apple: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
+    icon: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
+    shortcut: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
+    apple: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
   },
 };
 
