@@ -205,7 +205,7 @@ export default function Home() {
               </h2>
 
               <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                {["ყველა", "ხინკალი", "პელმენი", "ვარენიკი", "კოტლეტი", "ქაბაბი", "სამარხვო", "🌿 ცოცხალი (ახალი)", "❄️ გაყინული"].map((category) => (
+                {["ყველა", "ხინკალი", "პელმენი", "ვარენიკი", "კოტლეტი", "ქაბაბი", "სამარხვო", "ცოცხალი / გაუყინავი", "❄️ გაყინული"].map((category) => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
