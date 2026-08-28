@@ -8,9 +8,13 @@ import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 
 const AVAILABLE_CATEGORIES = [
   "ხინკალი",
-  "პელმენი / ვარენიკი",
-  "კოტლეტი / ქაბაბი",
+  "პელმენი",
+  "ვარენიკი",
+  "კოტლეტი",
+  "ქაბაბი",
   "სამარხვო",
+  "🌿 ცოცხალი (ახალი)",
+  "❄️ გაყინული",
 ];
 
 export default function AdminPage() {
@@ -23,6 +27,7 @@ export default function AdminPage() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState("ცალი");
+  const [stateType, setStateType] = useState("frozen");
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -91,6 +96,7 @@ export default function AdminPage() {
       name,
       price: parseFloat(price),
       unit,
+      state_type: stateType,
       categories,
       description,
       image: imageUrl || "https://images.unsplash.com/photo-1556761223-4c4282c73f77?q=80&w=600",
@@ -116,6 +122,7 @@ export default function AdminPage() {
     setName(product.name);
     setPrice(product.price.toString());
     setUnit(product.unit);
+    setStateType(product.state_type || "frozen");
     setCategories(Array.isArray(product.categories) ? product.categories : []);
     setDescription(product.description || "");
     setImageUrl(product.image || "");
@@ -136,6 +143,7 @@ export default function AdminPage() {
     setName("");
     setPrice("");
     setUnit("ცალი");
+    setStateType("frozen");
     setCategories([]);
     setDescription("");
     setImageUrl("");
@@ -206,6 +214,14 @@ export default function AdminPage() {
               <option value="კგ">კგ</option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-1">პროდუქტის ტიპი</label>
+          <select value={stateType} onChange={(e) => setStateType(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white">
+            <option value="frozen">❄️ გაყინული</option>
+            <option value="fresh">🌿 ცოცხალი / გაუყინავი</option>
+          </select>
         </div>
 
         {/* კატეგორიების არჩევა ჩექბოქსებით */}

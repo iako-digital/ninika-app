@@ -80,10 +80,14 @@ export default function Home() {
 
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === "ყველა") return true;
-    if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი");
-    if (selectedCategory === "პელმენი / ვარენიკი") return p.name.includes("პელმენი") || p.name.includes("ვარენიკი");
-    if (selectedCategory === "კოტლეტი / ქაბაბი") return p.name.includes("კოტლეტი") || p.name.includes("ქაბაბი") || p.name.includes("გუფთა");
-    if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს");
+    if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი") || (p.categories || []).includes("ხინკალი");
+    if (selectedCategory === "პელმენი") return p.name.includes("პელმენი") || (p.categories || []).includes("პელმენი");
+    if (selectedCategory === "ვარენიკი") return p.name.includes("ვარენიკი") || (p.categories || []).includes("ვარენიკი");
+    if (selectedCategory === "კოტლეტი") return p.name.includes("კოტლეტი") || p.name.includes("გუფთა") || (p.categories || []).includes("კოტლეტი");
+    if (selectedCategory === "ქაბაბი") return p.name.includes("ქაბაბი") || (p.categories || []).includes("ქაბაბი");
+    if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს") || (p.categories || []).includes("სამარხვო");
+    if (selectedCategory === "🌿 ცოცხალი (ახალი)") return p.state_type === 'fresh' || p.name.includes('ცოცხალი') || p.name.includes('გაუყინავი');
+    if (selectedCategory === "❄️ გაყინული") return p.state_type === 'frozen' || !p.state_type;
     return true;
   });
 
@@ -201,7 +205,7 @@ export default function Home() {
               </h2>
 
               <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-                {["ყველა", "ხინკალი", "პელმენი / ვარენიკი", "კოტლეტი / ქაბაბი", "სამარხვო"].map((category) => (
+                {["ყველა", "ხინკალი", "პელმენი", "ვარენიკი", "კოტლეტი", "ქაბაბი", "სამარხვო", "🌿 ცოცხალი (ახალი)", "❄️ გაყინული"].map((category) => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
@@ -228,7 +232,16 @@ export default function Home() {
                     <div className="p-5 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-xl font-bold">{product.name}</h3>
+                          <div className="flex flex-col">
+                            <h3 className="text-xl font-bold">{product.name}</h3>
+                            <div className="mt-1">
+                               {product.state_type === 'fresh' || product.name.includes('ცოცხალი') || product.name.includes('გაუყინავი') ? (
+                                 <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">🌿 ცოცხალი</span>
+                               ) : (
+                                 <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">❄️ გაყინული</span>
+                               )}
+                            </div>
+                          </div>
                           <p className="text-[#C6A265] font-extrabold text-lg whitespace-nowrap ml-2">
                             {Number(product.price).toFixed(2)} ₾ <span className="text-xs font-normal opacity-70">/ {product.unit}</span>
                           </p>
