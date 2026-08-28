@@ -199,20 +199,20 @@ export default function Home() {
       <main className="p-4 md:p-6 max-w-5xl mx-auto">
         {activeTab === "menu" && (
           <section>
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4 border-b border-[#C6A265]/20 pb-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2 border-b border-[#C6A265]/20 pb-3">
               <h2 className="text-2xl md:text-3xl font-bold text-[#C6A265] flex items-center gap-2">
                 <Utensils size={28} /> ჩვენი მენიუ
               </h2>
 
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+              <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
                 {["ყველა", "ხინკალი", "პელმენი", "ვარენიკი", "კოტლეტი", "ქაბაბი", "სამარხვო", "ცოცხალი / გაუყინავი", "❄️ გაყინული"].map((category) => (
                   <button
                     key={category}
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs md:text-sm font-semibold whitespace-nowrap transition border ${
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition border ${
                       selectedCategory === category
                         ? "bg-[#C6A265] text-black border-[#C6A265]"
-                        : "bg-black/20 text-white/80 border-white/10 hover:border-[#C6A265]/50"
+                        : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
                     }`}
                   >
                     {category}
