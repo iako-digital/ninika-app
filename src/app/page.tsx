@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
-import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
@@ -351,6 +351,14 @@ export default function Home() {
                 <div>
                   <p className="text-xs opacity-70">ტელეფონი</p>
                   <a href="tel:595085695" className="font-bold text-[#C6A265] hover:underline">595 08 56 95</a>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 bg-black/20 p-4 rounded-2xl border border-[#C6A265]/20">
+                <Mail className="text-[#C6A265]" size={24} />
+                <div>
+                  <p className="text-xs opacity-70">ელ.ფოსტა</p>
+                  <a href="mailto:ninika.kitchen@gmail.com" className="font-bold text-[#C6A265] hover:underline">ninika.kitchen@gmail.com</a>
                 </div>
               </div>
             </div>
