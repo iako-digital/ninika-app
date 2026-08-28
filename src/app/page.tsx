@@ -236,7 +236,7 @@ export default function Home() {
                             <h3 className="text-xl font-bold">{product.name}</h3>
                             <div className="mt-1">
                                {product.state_type === 'fresh' || product.name.includes('ცოცხალი') || product.name.includes('გაუყინავი') ? (
-                                 <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">🌿 ცოცხალი</span>
+                                 <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">ცოცხალი / გაუყინავი</span>
                                ) : (
                                  <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">❄️ გაყინული</span>
                                )}
