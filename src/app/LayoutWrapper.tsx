@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Bot, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bot, X, ChevronUp } from "lucide-react";
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
     { role: "assistant", text: "გამარჯობა! მე ვარ იაკო, თქვენი AI ასისტენტი. რით შემიძლია დაგეხმაროთ? 😊" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -74,6 +87,17 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         </div>
       </footer>
 
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 left-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#d4af37] text-[#121619] shadow-xl transition-all duration-300 hover:scale-110"
+          title="ზემოთ ასვლა"
+        >
+          <ChevronUp size={24} />
+        </button>
+      )}
+
       {/* Iako AI Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -82,6 +106,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       >
         <Bot size={28} />
       </button>
+
 
       {/* Iako Chat Modal */}
       {isOpen && (
