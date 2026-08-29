@@ -363,7 +363,7 @@ export default function Home() {
                 <Phone className="text-[#C6A265]" size={24} />
                 <div>
                   <p className="text-xs opacity-70">ტელეფონი</p>
-                  <a href="tel:595085695" className="font-bold text-[#C6A265] hover:underline">595 08 56 95</a>
+                  <a href="tel:551500606" className="font-bold text-[#C6A265] hover:underline">551 50 06 06</a>
                 </div>
               </div>
 
