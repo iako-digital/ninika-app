@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ reply: "API Key არ არის მითითებული Vercel-ში." }, { status: 500 });
+      return NextResponse.json({ reply: "API Key არ არის מითითებული Vercel-ში." }, { status: 500 });
     }
 
     // 1. პროდუქტების წამოღება Supabase ბაზიდან
@@ -22,37 +22,39 @@ export async function POST(req: Request) {
 
     const productsContext = products?.length 
       ? products.map(p => `- ${p.name}: ${p.price} ₾ (${p.unit}), ტიპი: ${p.state_type === 'fresh' ? 'ცოცხალი/გაუყინავი' : 'გაყინული'}`).join("\n")
-      : "ხინკალი (შერეული ხორცით): 1.40 ₾, პელმენი: 28.00 ₾ / კგ, პელმენი (საქონლის ხორცით): 12.00 ₾ / კგ";
+      : "ხინკალი (შერეული ხორცით): 1.40 ₾ / ცალი\nპელმენი: 28.00 ₾ / კგ\nპელმენი (საქონლის ხორცით): 12.00 ₾ / კგ";
 
     const knowledgeContext = knowledge?.length
       ? knowledge.map(k => `--- ${k.title} ---\n${k.content}`).join("\n\n")
       : "";
 
-    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) AI ასისტენტი.
+    const systemPromptText = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) AI ასისტენტი.
 
 ოფიციალური საკონტაქტო ინფო:
-- ტელეფონი: +995 551 50 06 06
+- ტელეფონი: 551 50 06 06 (+995 551 50 06 06)
 - ელ-ფოსტა: ninika.kitchen@gmail.com
 - მისამართი: ოზურგეთი, ს. მგელაძის 3
 
-აქტუალური პროდუქტები და ზუსტი ფასები:
+ჩვენი აქტუალური პროდუქტები და ფასები:
 ${productsContext}
 
+დამატებითი ცოდნის ბაზა:
 ${knowledgeContext}
 
-მნიშვნელოვანი წესები:
+უპირველესი და მკაცრი წესები:
 1. უპასუხე მხოლოდ ქართულად!
-2. არასოდეს გამოიყენო მისალმება პასუხის დასაწყისში! მომხმარებელი უკვე მოგესალმა.
-3. თუ კითხვა ეხება ფასს (მაგ: "რა ღირს ხინკალი?" ან "რა ღირს კოტლეტი?"), ეგრევე უპასუხე ზუსტი ფასი ზემოთ მოყვანილი სიიდან!
-4. იყავი მოკლე, კონკრეტული და მეგობრული.`;
+2. არასოდეს გამოიყენო ზოგადი მისალმებები ("გამარჯობა!", "რით შემიძლია დაგეხმაროთ?", "შეგიძლიათ იკითხოთ...")! მომხმარებელს უკვე მიესალმე. უპასუხე პირდაპირ დასმულ კითხვას.
+3. თუ კითხვა ეხება პროდუქტის ფასს (მაგ: "რა ღირს ხინკალი?" ან "რა ღირს კოტლეტი?"), ეგრევე დაუწერე ზუსტი ფასი პროდუქტების სიიდან!
+4. თუ მომხმარებელი იკითხავს ისეთ პროდუქტზე, კერძზე ან ინფორმაციაზე, რომელიც ზემოთ მოყვანილ სიაში ან ცოდნის ბაზაში არ არის: პირდაპირ უთხარი, რომ სამწუხაროდ ამ პროდუქტზე/საკითხზე ინფორმაცია არ გაქვს, და შესთავაზე დარეკონ ნომერზე 551 50 06 06 ან ისარგებლონ ვებგვერდზე არსებული Messenger-ის ღილაკით.
+5. იყავი მოკლე, კონკრეტული და თბილი.`;
 
-    // ისტორიის ფორმატირება
+    // ისტორიის სწორი ფორმატირება
     const formattedHistory = Array.isArray(history)
       ? history
-          .filter((msg: any) => msg && msg.text)
+          .filter((msg: any) => msg && (msg.text || msg.content))
           .map((msg: any) => ({
             role: msg.sender === "user" || msg.role === "user" ? "user" : "model",
-            parts: [{ text: String(msg.text) }]
+            parts: [{ text: String(msg.text || msg.content) }]
           }))
       : [];
 
@@ -69,7 +71,7 @@ ${knowledgeContext}
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         systemInstruction: {
-          parts: [{ text: systemPrompt }]
+          parts: [{ text: systemPromptText }]
         },
         contents
       })
@@ -78,7 +80,7 @@ ${knowledgeContext}
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini Error:", data);
+      console.error("Gemini API Error:", data);
       return NextResponse.json({ reply: `API შეცდომა: ${data.error?.message || "უცნობი ხარვეზი"}` });
     }
 
@@ -87,6 +89,6 @@ ${knowledgeContext}
     return NextResponse.json({ reply });
   } catch (error: any) {
     console.error("Chat Server Error:", error);
-    return NextResponse.json({ reply: "სერვერული ხარვეზია." }, { status: 500 });
+    return NextResponse.json({ reply: "სერვერული ხარვეზია. გთხოვთ სცადოთ მოგვიანებით." }, { status: 500 });
   }
 }
