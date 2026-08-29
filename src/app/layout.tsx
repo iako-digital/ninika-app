@@ -16,9 +16,9 @@ export const metadata: Metadata = {
   title: "ნინიკა • საოჯახო სამზარეულო",
   description: "ნახევარფაბრიკატების საოჯახო საწარმო — ოჯახური სითბო და ხარისხი შენს თეფშზე",
   icons: {
-    icon: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
-    shortcut: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
-    apple: "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg",
+    icon: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
+    shortcut: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
+    apple: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
   },
 };
 
@@ -28,10 +28,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="ka"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative">
-        {children}
+      <body className="min-h-full flex flex-col relative pb-12">
+        <main className="flex-1">{children}</main>
 
-        {/* Facebook Messenger Floating Button — აწეულია bottom-24-ზე კალათის თავზე */}
+        {/* Global Footer - Powered by CDC Studio */}
+        <footer className="w-full py-4 text-center border-t border-white/10 bg-[#16251c]/60 backdrop-blur-sm">
+          <p className="text-xs text-[#C6A265]/80 font-medium tracking-wide">
+            Powered by{" "}
+            <a
+              href="https://www.cdc.org.ge/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#C6A265] underline hover:text-white transition-colors duration-200 font-semibold"
+            >
+              CDC Studio
+            </a>
+          </p>
+        </footer>
+
+        {/* Facebook Messenger Floating Button */}
         <a
           href="https://m.me/1302047889659335"
           target="_blank"
