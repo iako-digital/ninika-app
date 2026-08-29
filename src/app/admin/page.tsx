@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
-import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
+import { Edit, Trash2, Eye, EyeOff, Bot } from "lucide-react";
 
 const AVAILABLE_CATEGORIES = [
   "ხინკალი",
@@ -34,11 +34,17 @@ export default function AdminPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Knowledge Base State
+  const [knowledgeList, setKnowledgeList] = useState<any[]>([]);
+  const [knowledgeTitle, setKnowledgeTitle] = useState("");
+  const [knowledgeContent, setKnowledgeContent] = useState("");
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === "ninika2026") {
       setIsAuthenticated(true);
       fetchProducts();
+      fetchKnowledge();
     } else {
       alert("არასწორი პაროლი!");
     }
@@ -50,8 +56,17 @@ export default function AdminPage() {
     else setProducts(data || []);
   };
 
+  const fetchKnowledge = async () => {
+    const { data, error } = await supabase.from("ai_knowledge").select("*").order("id", { ascending: true });
+    if (error) console.error(error);
+    else setKnowledgeList(data || []);
+  };
+
   useEffect(() => {
-    if (isAuthenticated) fetchProducts();
+    if (isAuthenticated) {
+      fetchProducts();
+      fetchKnowledge();
+    }
   }, [isAuthenticated]);
 
   const handleCategoryToggle = (cat: string) => {
@@ -117,6 +132,28 @@ export default function AdminPage() {
     fetchProducts();
   };
 
+  const handleAddKnowledge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!knowledgeTitle || !knowledgeContent) return;
+    
+    const { error } = await supabase.from("ai_knowledge").insert([{ title: knowledgeTitle, content: knowledgeContent }]);
+    if (error) alert("შეცდომა დამატებისას: " + error.message);
+    else {
+      alert("ცოდნა წარმატებით დაემატა!");
+      setKnowledgeTitle("");
+      setKnowledgeContent("");
+      fetchKnowledge();
+    }
+  };
+
+  const handleDeleteKnowledge = async (id: number) => {
+    if (confirm("ნამდვილად გსურთ ამ დოკუმენტის წაშლა?")) {
+      const { error } = await supabase.from("ai_knowledge").delete().eq("id", id);
+      if (error) alert("შეცდომა წაშლისას.");
+      else fetchKnowledge();
+    }
+  };
+
   const handleEdit = (product: any) => {
     setEditingId(product.id);
     setName(product.name);
@@ -152,9 +189,9 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#1b2e23] text-white flex items-center justify-center p-6">
-        <form onSubmit={handleLogin} className="bg-[#253e2f] p-8 rounded-3xl border border-gold/30 w-full max-w-sm space-y-4">
-          <h2 className="text-2xl font-bold text-[#C6A265] text-center">ადმინ პანელი</h2>
+      <div className="min-h-screen bg-[#121619] text-white flex items-center justify-center p-6">
+        <form onSubmit={handleLogin} className="bg-[#1e242b] p-8 rounded-3xl border border-[#d4af37]/30 w-full max-w-sm space-y-4">
+          <h2 className="text-2xl font-bold text-[#d4af37] text-center">ადმინ პანელი</h2>
           
           <div className="relative">
             <input 
@@ -162,18 +199,18 @@ export default function AdminPage() {
               placeholder="შეიყვანეთ პაროლი" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 pr-10 rounded-xl bg-black/20 border border-gold/30 text-white focus:outline-none"
+              className="w-full p-3 pr-10 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white focus:outline-none"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#C6A265] hover:text-white transition"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#d4af37] hover:text-white transition"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
-          <button type="submit" className="w-full bg-[#C6A265] text-black font-bold py-3 rounded-xl hover:bg-gold">
+          <button type="submit" className="w-full bg-[#d4af37] text-[#121619] font-bold py-3 rounded-xl hover:bg-[#c59b27]">
             შესვლა
           </button>
         </form>
@@ -182,34 +219,34 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1b2e23] text-white p-6 max-w-4xl mx-auto space-y-12">
-      <div className="flex justify-between items-center border-b border-gold/20 pb-4">
-        <h1 className="text-3xl font-bold text-[#C6A265]">ადმინ პანელი</h1>
+    <div className="min-h-screen bg-[#121619] text-[#e2e8f0] p-6 max-w-4xl mx-auto space-y-12">
+      <div className="flex justify-between items-center border-b border-[#d4af37]/20 pb-4">
+        <h1 className="text-3xl font-bold text-[#d4af37]">ადმინ პანელი</h1>
         {editingId && (
-          <button onClick={resetForm} className="text-sm bg-white/10 px-4 py-2 rounded-full hover:bg-white/20">
+          <button onClick={resetForm} className="text-sm bg-[#1e242b] px-4 py-2 rounded-full hover:bg-white/10">
             + ახლის დამატებაზე გადასვლა
           </button>
         )}
       </div>
 
-      <form onSubmit={handleSaveProduct} className="bg-[#253e2f] p-8 rounded-3xl border border-gold/30 space-y-5">
-        <h2 className="text-xl font-bold text-[#C6A265]">
+      <form onSubmit={handleSaveProduct} className="bg-[#1e242b] p-8 rounded-3xl border border-[#d4af37]/30 space-y-5">
+        <h2 className="text-xl font-bold text-[#d4af37]">
           {editingId ? "✏️ პროდუქტის რედაქტირება" : "➕ ახალი პროდუქტის დამატება"}
         </h2>
 
         <div>
           <label className="block text-sm font-semibold mb-1">პროდუქტის დასახელება</label>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white" placeholder="მაგ: ხინკალი" />
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white" placeholder="მაგ: ხინკალი" />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-1">ფასი (₾)</label>
-            <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white" placeholder="1.20" />
+            <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white" placeholder="1.20" />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">ერთეული</label>
-            <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white">
+            <select value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white">
               <option value="ცალი">ცალი</option>
               <option value="კგ">კგ</option>
             </select>
@@ -218,13 +255,12 @@ export default function AdminPage() {
 
         <div>
           <label className="block text-sm font-semibold mb-1">პროდუქტის ტიპი</label>
-          <select value={stateType} onChange={(e) => setStateType(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white">
+          <select value={stateType} onChange={(e) => setStateType(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white">
             <option value="frozen">❄️ გაყინული</option>
             <option value="fresh">🌿 ცოცხალი / გაუყინავი</option>
           </select>
         </div>
 
-        {/* კატეგორიების არჩევა ჩექბოქსებით */}
         <div>
           <label className="block text-sm font-semibold mb-2">კატეგორიები (შეგიძლიათ აირჩიოთ რამდენიმე):</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -237,8 +273,8 @@ export default function AdminPage() {
                   onClick={() => handleCategoryToggle(cat)}
                   className={`p-2.5 rounded-xl text-xs font-bold border text-center transition ${
                     isSelected
-                      ? "bg-[#C6A265] text-black border-[#C6A265]"
-                      : "bg-black/20 text-white/70 border-white/10 hover:border-[#C6A265]/40"
+                      ? "bg-[#d4af37] text-[#121619] border-[#d4af37]"
+                      : "bg-black/20 text-white/70 border-white/10 hover:border-[#d4af37]/40"
                   }`}
                 >
                   {isSelected ? "✓ " : ""}{cat}
@@ -250,16 +286,16 @@ export default function AdminPage() {
 
         <div>
           <label className="block text-sm font-semibold mb-1">აღწერა</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white h-24" placeholder="მოკლე აღწერა..." />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white h-24" placeholder="მოკლე აღწერა..." />
         </div>
 
         <div>
           <label className="block text-sm font-semibold mb-1">ფოტოს ატვირთვა (Cloudinary)</label>
-          <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full p-2 bg-black/20 rounded-xl border border-gold/30 text-sm" />
-          {uploading && <p className="text-xs text-gold mt-1">ფოტო იტვირთება Cloudinary-ში...</p>}
+          <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full p-2 bg-black/20 rounded-xl border border-[#d4af37]/30 text-sm" />
+          {uploading && <p className="text-xs text-[#d4af37] mt-1">ფოტო იტვირთება Cloudinary-ში...</p>}
           {imageUrl && (
             <div className="mt-3">
-              <img src={imageUrl} alt="Uploaded" className="h-32 rounded-xl object-cover border border-gold/30" />
+              <img src={imageUrl} alt="Uploaded" className="h-32 rounded-xl object-cover border border-[#d4af37]/30" />
             </div>
           )}
         </div>
@@ -270,39 +306,64 @@ export default function AdminPage() {
             type="text"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
-            className="w-full p-3 rounded-xl bg-black/20 border border-gold/30 text-white"
+            className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white"
             placeholder="YouTube ბმული, მაგ: https://www.youtube.com/watch?v=..."
           />
         </div>
 
-        <button type="submit" className="w-full bg-[#C6A265] text-black font-extrabold py-4 rounded-xl hover:bg-gold transition text-lg">
+        <button type="submit" className="w-full bg-[#d4af37] text-[#121619] font-extrabold py-4 rounded-xl hover:bg-[#c59b27] transition text-lg">
           {editingId ? "ცვლილებების შენახვა" : "პროდუქტის დამატება"}
         </button>
       </form>
 
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-[#C6A265]">არსებული მენიუ ({products.length})</h2>
+        <h2 className="text-2xl font-bold text-[#d4af37]">არსებული მენიუ ({products.length})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {products.map((p) => (
-            <div key={p.id} className="bg-[#253e2f] p-4 rounded-2xl border border-gold/20 flex items-center justify-between gap-4">
+            <div key={p.id} className="bg-[#1e242b] p-4 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between gap-4">
               <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
               <div className="flex-1">
                 <h3 className="font-bold text-lg">{p.name}</h3>
-                <p className="text-[#C6A265] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>
+                <p className="text-[#d4af37] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>
                 {Array.isArray(p.categories) && p.categories.length > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    🏷️ {p.categories.join(", ")}
-                  </p>
+                  <p className="text-xs text-gray-400 mt-1">🏷️ {p.categories.join(", ")}</p>
                 )}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => handleEdit(p)} className="p-2 bg-gold/20 hover:bg-gold/40 text-[#C6A265] rounded-lg">
+                <button onClick={() => handleEdit(p)} className="p-2 bg-[#d4af37]/20 hover:bg-[#d4af37]/40 text-[#d4af37] rounded-lg">
                   <Edit size={18} />
                 </button>
                 <button onClick={() => handleDelete(p.id)} className="p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
                   <Trash2 size={18} />
                 </button>
               </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI Knowledge Base Management */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-bold text-[#d4af37] flex items-center gap-2">
+          <Bot /> 🧠 AI ასისტენტ იაკოს ცოდნის ბაზა / დოკუმენტები
+        </h2>
+        
+        <form onSubmit={handleAddKnowledge} className="bg-[#1e242b] p-6 rounded-2xl border border-[#d4af37]/30 space-y-4">
+          <input type="text" value={knowledgeTitle} onChange={(e) => setKnowledgeTitle(e.target.value)} placeholder="დოკუმენტის სათაური (მაგ: მიწოდების პირობები)" className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white" />
+          <textarea value={knowledgeContent} onChange={(e) => setKnowledgeContent(e.target.value)} placeholder="ჩასვით ვრცელი ინსტრუქცია ან წესები..." className="w-full p-3 rounded-xl bg-black/20 border border-[#d4af37]/30 text-white h-32" />
+          <button type="submit" className="w-full bg-[#d4af37] text-[#121619] font-bold py-3 rounded-xl hover:bg-[#c59b27]">➕ ცოდნის ბაზაში დამატება</button>
+        </form>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {knowledgeList.map((doc) => (
+            <div key={doc.id} className="bg-[#1e242b] p-5 rounded-2xl border border-[#d4af37]/20 flex flex-col justify-between">
+              <div>
+                <h3 className="font-bold text-lg text-[#d4af37] mb-2">{doc.title}</h3>
+                <p className="text-sm text-[#e2e8f0]/70 line-clamp-3">{doc.content}</p>
+              </div>
+              <button onClick={() => handleDeleteKnowledge(doc.id)} className="mt-4 flex items-center gap-2 text-red-400 hover:text-red-300 transition">
+                <Trash2 size={16} /> 🗑️ წაშლა
+              </button>
             </div>
           ))}
         </div>

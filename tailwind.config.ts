@@ -9,9 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#F7F4EB",
-        forest: "#2A4533",
-        gold: "#C6A265",
+        background: "#121619", // Slate Charcoal
+        card: "#1e242b",       // Elevated dark slate gray
+        gold: "#d4af37",       // Warm Brushed Gold
+        accent: "#c59b27",     // Gold accent for hover/borders
+        platinum: "#e2e8f0",   // Soft platinum/silver
       },
     },
   },
