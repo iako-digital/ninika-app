@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,23 +14,52 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "ნინიკა • საოჯახო სამზარეულო",
-  description: "ნახევარფაბრიკატების საოჯახო საწარმო — ოჯახური სითბო და ხარისხი შენს თეფშზე",
-  icons: {
-    icon: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
-    shortcut: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
-    apple: "https://res.cloudinary.com/dmcabui00/image/upload/v1787822458/uiqlsgnw3cvx5sixgp1v.jpg",
-  },
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
+    { role: "assistant", text: "გამარჯობა! მე ვარ იაკო. რით შემიძლია დაგეხმაროთ? 😊" }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+
+    const userMsg = input.trim();
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg }),
+      });
+      const data = await res.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: data.reply || "ბოდიში, პასუხის მიღება ვერ მოხერხდა." },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "შეცდომაა კავშირში. გთხოვთ სცადოთ მოგვიანებით." },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <html
       lang="ka"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative pb-12">
+      <head>
+
+      </head>
+      <body className="min-h-full flex flex-col relative pb-12 bg-[#1b2e23] text-white">
         <main className="flex-1">{children}</main>
 
         {/* Global Footer - Powered by CDC Studio */}
@@ -45,6 +76,99 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
           </p>
         </footer>
+
+        {/* 🤖 AI ასისტენტი "იაკო" — Floating Button (Messenger-ის ზემოთ) */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="fixed bottom-40 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#C6A265] text-[#1b2e23] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20 font-bold text-2xl"
+          title="AI ასისტენტი იაკო"
+        >
+          ✨
+        </button>
+
+        {/* 💬 იაკოს ჩატის ფანჯარა (Chat Modal) */}
+        {isOpen && (
+          <div className="fixed bottom-56 right-6 z-50 w-80 sm:w-96 rounded-2xl bg-[#16251c] border border-[#C6A265]/40 shadow-2xl overflow-hidden flex flex-col h-[450px]">
+            {/* Header */}
+            <div className="bg-[#C6A265] text-[#1b2e23] p-4 flex justify-between items-center font-bold">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">✨</span>
+                <span>იაკო - ნინიკას AI ასისტენტი</span>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-lg hover:opacity-70 transition-opacity font-extrabold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 text-sm">
+              {messages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl px-3.5 py-2 ${
+                      msg.role === "user"
+                        ? "bg-[#C6A265] text-[#1b2e23] font-medium"
+                        : "bg-white/10 text-white border border-white/10"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-white/10 text-white/70 rounded-2xl px-3.5 py-2 text-xs italic">
+                    იაკო ფიქრობს...
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input & CDC Footer in Chat */}
+            <div className="p-3 border-t border-white/10 bg-[#121f17]">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSend();
+                }}
+                className="flex gap-2 mb-2"
+              >
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="ჰკითხე იაკოს..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C6A265]"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-[#C6A265] text-[#1b2e23] px-4 py-2 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  ➤
+                </button>
+              </form>
+
+              <p className="text-[10px] text-center text-[#C6A265]/60">
+                Powered by{" "}
+                <a
+                  href="https://www.cdc.org.ge/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-[#C6A265]"
+                >
+                  CDC Studio
+                </a>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Facebook Messenger Floating Button */}
         <a
