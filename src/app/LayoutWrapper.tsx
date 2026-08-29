@@ -17,14 +17,20 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     const userMsg = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
+    
+    // Create the updated messages array to send to API
+    const updatedMessages = [...messages, { role: "user" as const, text: userMsg }];
+    
+    // Update local state immediately
+    setMessages(updatedMessages);
     setLoading(true);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, { role: "user", content: userMsg }] }),
+        // Send messages mapped to expected format
+        body: JSON.stringify({ messages: updatedMessages.map(m => ({ role: m.role, content: m.text })) }),
       });
       const data = await res.json();
       setMessages((prev) => [

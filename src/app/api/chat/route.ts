@@ -4,11 +4,12 @@ import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { messages } = await req.json();
+    const lastMessage = messages[messages.length - 1].content;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ reply: "API Key არ არის მითითებული (.env.local-ში ან Vercel-ში)." }, { status: 500 });
+      return NextResponse.json({ reply: "API Key არ არის მითითებული." }, { status: 500 });
     }
 
     // 1. პროდუქტების წამოღება ბაზიდან
@@ -25,7 +26,8 @@ export async function POST(req: Request) {
       `--- ${k.title} ---\n${k.content}`
     ).join("\n\n") || "დამატებითი დოკუმენტები არ არის";
 
-    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
+    const systemInstruction = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
+შენი სახელია იაკო. როდესაც მომხმარებელი გესალმება, პირველ რიგში წარუდგინე თავი: "გამარჯობა! მე ვარ იაკო, თქვენი AI ასისტენტი".
 
 პროდუქტების აქტუალური სია:
 ${productsContext}
@@ -39,11 +41,20 @@ ${knowledgeContext}
 3. იყავი მოკლე და კონკრეტული.`;
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction
+    });
 
-    const result = await model.generateContent(`${systemPrompt}\n\nმომხმარებლის კითხვა: ${message}`);
-    const response = await result.response;
-    const reply = response.text();
+    const chat = model.startChat({
+      history: messages.slice(0, -1).map((m: any) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      })),
+    });
+
+    const result = await chat.sendMessage(lastMessage);
+    const reply = result.response.text();
 
     return NextResponse.json({ reply });
   } catch (error: any) {
