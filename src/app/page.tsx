@@ -78,6 +78,7 @@ export default function Home() {
 
   const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
 
+  // 🛠️ გასწორებული ფილტრაციის ლოგიკა
   const filteredProducts = products.filter((p) => {
     if (selectedCategory === "ყველა") return true;
     if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი") || (p.categories || []).includes("ხინკალი");
@@ -86,8 +87,17 @@ export default function Home() {
     if (selectedCategory === "კოტლეტი") return p.name.includes("კოტლეტი") || p.name.includes("გუფთა") || (p.categories || []).includes("კოტლეტი");
     if (selectedCategory === "ქაბაბი") return p.name.includes("ქაბაბი") || (p.categories || []).includes("ქაბაბი");
     if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს") || (p.categories || []).includes("სამარხვო");
-    if (selectedCategory === "🌿 ცოცხალი (ახალი)") return p.state_type === 'fresh' || p.name.includes('ცოცხალი') || p.name.includes('გაუყინავი');
-    if (selectedCategory === "❄️ გაყინული") return p.state_type === 'frozen' || !p.state_type;
+    
+    // მხოლოდ ცოცხალი / გაუყინავი (გამორიცხავს გაყინულებს)
+    if (selectedCategory === "ცოცხალი / გაუყინავი") {
+      return p.state_type === "fresh" || p.name.includes("ცოცხალი") || p.name.includes("გაუყინავი");
+    }
+    
+    // მხოლოდ გაყინული
+    if (selectedCategory === "❄️ გაყინული") {
+      return p.state_type === "frozen" || (!p.state_type && !p.name.includes("ცოცხალი") && !p.name.includes("გაუყინავი"));
+    }
+    
     return true;
   });
 
@@ -156,7 +166,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       alert("დაფიქსირდა შეცდომა.");
-    } finally {
+    } fontally {
       setIsSubmitting(false);
     }
   };
