@@ -166,7 +166,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       alert("დაფიქსირდა შეცდომა.");
-    } fontally {
+    } finally {
       setIsSubmitting(false);
     }
   };
