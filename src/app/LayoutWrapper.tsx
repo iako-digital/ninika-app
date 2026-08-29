@@ -71,7 +71,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {/* Iako AI Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-[140px] right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#d4af37] text-[#121619] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20 font-bold"
+        className="fixed bottom-[140px] right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#C6A265] text-[#1b2e23] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20"
         title="AI ასისტენტი იაკო"
       >
         <Bot size={28} />
