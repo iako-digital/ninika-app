@@ -38,30 +38,33 @@ ${knowledgeContext}
 3. არ დაიწყო პასუხი ხელახალი მისალმებით (მაგ: "გამარჯობა! მე ვარ იაკო..."), თუ მომხმარებელს უკვე მიესალმე! უპასუხე პირდაპირ დასმულ კითხვას.
 4. იყავი მოკლე, კონკრეტული და დამხმარე.`;
 
-    // ისტორიის ფორმატირება Gemini-სთვის
-    const formattedHistory = Array.isArray(history) 
-      ? history.map((msg: any) => ({
-          role: msg.sender === "user" ? "user" : "model",
-          parts: [{ text: msg.text }]
-        }))
+    // ისტორიის უსაფრთხო ფორმატირება (მხოლოდ ვალიდური შეტყობინებები)
+    const formattedHistory = Array.isArray(history)
+      ? history
+          .filter((msg: any) => msg && (msg.text || msg.content))
+          .map((msg: any) => ({
+            role: msg.sender === "user" || msg.role === "user" ? "user" : "model",
+            parts: [{ text: String(msg.text || msg.content) }]
+          }))
       : [];
 
     const contents = [
-      {
-        role: "user",
-        parts: [{ text: `[SYSTEM INSTRUCTION]:\n${systemPrompt}` }]
-      },
       ...formattedHistory,
       {
         role: "user",
-        parts: [{ text: message }]
+        parts: [{ text: String(message) }]
       }
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents })
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents
+      })
     });
 
     const data = await response.json();
