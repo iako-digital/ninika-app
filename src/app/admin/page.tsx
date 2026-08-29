@@ -6,6 +6,53 @@ import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
 import { Edit, Trash2, Eye, EyeOff, Bot } from "lucide-react";
 
+const TABLE_SETUP_SQL: Record<string, string> = {
+  products: `create table if not exists products (
+  id bigint generated always as identity primary key,
+  name text not null,
+  price numeric not null,
+  unit text not null default 'ცალი',
+  state_type text default 'frozen',
+  categories text[] default '{}',
+  description text,
+  image text,
+  video_url text,
+  created_at timestamptz not null default now()
+);
+alter table products enable row level security;
+create policy "public access" on products for all using (true) with check (true);`,
+  ai_knowledge: `create table if not exists ai_knowledge (
+  id bigint generated always as identity primary key,
+  title text not null,
+  content text not null,
+  created_at timestamptz not null default now()
+);
+alter table ai_knowledge enable row level security;
+create policy "public access" on ai_knowledge for all using (true) with check (true);`,
+};
+
+function isMissingTableError(error: any) {
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    /schema cache|does not exist/i.test(error?.message || "")
+  );
+}
+
+function reportSupabaseError(error: any, table: keyof typeof TABLE_SETUP_SQL, action: string) {
+  if (isMissingTableError(error)) {
+    console.error(
+      `"${table}" ცხრილი არ არსებობს. გაუშვით ეს SQL Supabase-ის SQL Editor-ში და სცადეთ თავიდან:\n\n${TABLE_SETUP_SQL[table]}`
+    );
+    alert(
+      `ცხრილი "${table}" ჯერ არ არსებობს თქვენს Supabase ბაზაში.\n\n` +
+      `საჭირო SQL ბრძანება დაბეჭდილია ბრაუზერის კონსოლში (F12) — დააკოპირეთ და გაუშვით Supabase → SQL Editor-ში, შემდეგ სცადეთ თავიდან.`
+    );
+  } else {
+    alert(`შეცდომა ${action}: ${error.message}`);
+  }
+}
+
 const AVAILABLE_CATEGORIES = [
   "ხინკალი",
   "პელმენი",
@@ -52,13 +99,13 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
     const { data, error } = await supabase.from("products").select("*").order("id", { ascending: true });
-    if (error) console.error(error);
+    if (error) reportSupabaseError(error, "products", "მენიუს ჩატვირთვისას");
     else setProducts(data || []);
   };
 
   const fetchKnowledge = async () => {
     const { data, error } = await supabase.from("ai_knowledge").select("*").order("id", { ascending: true });
-    if (error) console.error(error);
+    if (error) reportSupabaseError(error, "ai_knowledge", "ცოდნის ბაზის ჩატვირთვისას");
     else setKnowledgeList(data || []);
   };
 
@@ -120,11 +167,11 @@ export default function AdminPage() {
 
     if (editingId) {
       const { error } = await supabase.from("products").update(productData).eq("id", editingId);
-      if (error) alert("შეცდომა რედაქტირებისას: " + error.message);
+      if (error) reportSupabaseError(error, "products", "რედაქტირებისას");
       else alert("პროდუქტი წარმატებით განახლდა!");
     } else {
       const { error } = await supabase.from("products").insert([productData]);
-      if (error) alert("შეცდომა დამატებისას: " + error.message);
+      if (error) reportSupabaseError(error, "products", "დამატებისას");
       else alert("ახალი პროდუქტი წარმატებით დაემატა!");
     }
 
@@ -135,9 +182,9 @@ export default function AdminPage() {
   const handleAddKnowledge = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!knowledgeTitle || !knowledgeContent) return;
-    
+
     const { error } = await supabase.from("ai_knowledge").insert([{ title: knowledgeTitle, content: knowledgeContent }]);
-    if (error) alert("შეცდომა დამატებისას: " + error.message);
+    if (error) reportSupabaseError(error, "ai_knowledge", "დამატებისას");
     else {
       alert("ცოდნა წარმატებით დაემატა!");
       setKnowledgeTitle("");
@@ -149,7 +196,7 @@ export default function AdminPage() {
   const handleDeleteKnowledge = async (id: number) => {
     if (confirm("ნამდვილად გსურთ ამ დოკუმენტის წაშლა?")) {
       const { error } = await supabase.from("ai_knowledge").delete().eq("id", id);
-      if (error) alert("შეცდომა წაშლისას.");
+      if (error) reportSupabaseError(error, "ai_knowledge", "წაშლისას");
       else fetchKnowledge();
     }
   };
@@ -170,7 +217,7 @@ export default function AdminPage() {
   const handleDelete = async (id: number) => {
     if (confirm("ნამდვილად გსურთ ამ პროდუქტის წაშლა?")) {
       const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) alert("შეცდომა წაშლისას.");
+      if (error) reportSupabaseError(error, "products", "წაშლისას");
       else fetchProducts();
     }
   };

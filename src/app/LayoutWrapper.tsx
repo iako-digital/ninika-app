@@ -30,20 +30,18 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     const userMsg = input.trim();
     setInput("");
-    
-    // Create the updated messages array to send to API
-    const updatedMessages = [...messages, { role: "user" as const, text: userMsg }];
-    
-    // Update local state immediately
-    setMessages(updatedMessages);
+
+    // Keep the prior turns as history; send the new message separately.
+    const history = messages;
+
+    setMessages((prev) => [...prev, { role: "user", text: userMsg }]);
     setLoading(true);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Send messages mapped to expected format
-        body: JSON.stringify({ messages: updatedMessages.map(m => ({ role: m.role, content: m.text })) }),
+        body: JSON.stringify({ message: userMsg, history }),
       });
       const data = await res.json();
       setMessages((prev) => [

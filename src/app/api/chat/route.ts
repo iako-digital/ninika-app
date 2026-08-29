@@ -7,18 +7,20 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ reply: "API Key არ არის מითითებული Vercel-ში." }, { status: 500 });
+      return NextResponse.json({ reply: "API Key არ არის მითითებული Vercel-ში." }, { status: 500 });
     }
 
     // 1. პროდუქტების წამოღება Supabase ბაზიდან
-    const { data: products } = await supabase
+    const { data: products, error: productsError } = await supabase
       .from("products")
       .select("name, price, unit, description, state_type");
+    if (productsError) console.error("Chat: failed to fetch products:", productsError);
 
     // 2. ცოდნის ბაზის წამოღება Supabase-იდან
-    const { data: knowledge } = await supabase
+    const { data: knowledge, error: knowledgeError } = await supabase
       .from("ai_knowledge")
       .select("title, content");
+    if (knowledgeError) console.error("Chat: failed to fetch ai_knowledge:", knowledgeError);
 
     const productsContext = products?.length 
       ? products.map(p => `- ${p.name}: ${p.price} ₾ (${p.unit}), ტიპი: ${p.state_type === 'fresh' ? 'ცოცხალი/გაუყინავი' : 'გაყინული'}`).join("\n")
@@ -46,7 +48,8 @@ ${knowledgeContext}
 2. არასოდეს გამოიყენო ზოგადი მისალმებები ("გამარჯობა!", "რით შემიძლია დაგეხმაროთ?", "შეგიძლიათ იკითხოთ...")! მომხმარებელს უკვე მიესალმე. უპასუხე პირდაპირ დასმულ კითხვას.
 3. თუ კითხვა ეხება პროდუქტის ფასს (მაგ: "რა ღირს ხინკალი?" ან "რა ღირს კოტლეტი?"), ეგრევე დაუწერე ზუსტი ფასი პროდუქტების სიიდან!
 4. თუ მომხმარებელი იკითხავს ისეთ პროდუქტზე, კერძზე ან ინფორმაციაზე, რომელიც ზემოთ მოყვანილ სიაში ან ცოდნის ბაზაში არ არის: პირდაპირ უთხარი, რომ სამწუხაროდ ამ პროდუქტზე/საკითხზე ინფორმაცია არ გაქვს, და შესთავაზე დარეკონ ნომერზე 551 50 06 06 ან ისარგებლონ ვებგვერდზე არსებული Messenger-ის ღილაკით.
-5. იყავი მოკლე, კონკრეტული და თბილი.`;
+5. თუ მომხმარებელი იკითხავს, როგორ გააკეთოს შეკვეთა: აუხსენი მოკლედ ნაბიჯებით — 1) ვებგვერდზე ninika.ge აირჩიოს სასურველი პროდუქტი და "+" ღილაკით დაამატოს კალათაში, 2) დააჭიროს ეკრანის ბოლოში გამოჩენილ "კალათის ნახვა" ღილაკს, 3) შეავსოს სახელი და ტელეფონის ნომერი და დაადასტუროს შეკვეთა. ალტერნატივის სახით შესთავაზე დარეკვა ნომერზე 551 50 06 06.
+6. იყავი მოკლე, კონკრეტული და თბილი.`;
 
     // ისტორიის სწორი ფორმატირება
     const formattedHistory = Array.isArray(history)
