@@ -69,7 +69,7 @@ ${knowledgeContext}
       }
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -83,7 +83,7 @@ ${knowledgeContext}
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini API Error:", data);
+      console.error(`Gemini API Error (status ${response.status}):`, JSON.stringify(data, null, 2));
       return NextResponse.json({ reply: `API შეცდომა: ${data.error?.message || "უცნობი ხარვეზი"}` });
     }
 
