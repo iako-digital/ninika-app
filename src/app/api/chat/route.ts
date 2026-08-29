@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { message, history } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -32,22 +32,36 @@ ${productsContext}
 დამატებითი ცოდნის ბაზა და დოკუმენტები:
 ${knowledgeContext}
 
-ინსტრუქცია:
-1. უპასუხე მხოლოდ ქართულად, მეგობრული ტონით.
+მნიშვნელოვანი ინსტრუქციები:
+1. უპასუხე მხოლოდ ქართულად, მეგობრული და ბუნებრივი ტონით.
 2. გამოიყენე ზუსტი ინფო და ფასები ზემოთ მოყვანილი სიიდან.
-3. იყავი მოკლე და კონკრეტული.`;
+3. არ დაიწყო პასუხი ხელახალი მისალმებით (მაგ: "გამარჯობა! მე ვარ იაკო..."), თუ მომხმარებელს უკვე მიესალმე! უპასუხე პირდაპირ დასმულ კითხვას.
+4. იყავი მოკლე, კონკრეტული და დამხმარე.`;
+
+    // ისტორიის ფორმატირება Gemini-სთვის
+    const formattedHistory = Array.isArray(history) 
+      ? history.map((msg: any) => ({
+          role: msg.sender === "user" ? "user" : "model",
+          parts: [{ text: msg.text }]
+        }))
+      : [];
+
+    const contents = [
+      {
+        role: "user",
+        parts: [{ text: `[SYSTEM INSTRUCTION]:\n${systemPrompt}` }]
+      },
+      ...formattedHistory,
+      {
+        role: "user",
+        parts: [{ text: message }]
+      }
+    ];
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `${systemPrompt}\n\nმომხმარებლის კითხვა: ${message}` }]
-          }
-        ]
-      })
+      body: JSON.stringify({ contents })
     });
 
     const data = await response.json();
