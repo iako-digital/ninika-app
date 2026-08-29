@@ -1,10 +1,10 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
-import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2 } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
@@ -378,6 +378,18 @@ export default function Home() {
           </section>
         )}
       </main>
+
+      <footer className="text-center text-xs opacity-70 text-[#C6A265] pb-8">
+        Powered by{" "}
+        <a
+          href="https://www.cdc.org.ge/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline font-semibold hover:opacity-100 transition-opacity"
+        >
+          CDC Studio
+        </a>
+      </footer>
 
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
