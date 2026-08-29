@@ -10,47 +10,49 @@ export async function POST(req: Request) {
       return NextResponse.json({ reply: "API Key არ არის მითითებული Vercel-ში." }, { status: 500 });
     }
 
-    // 1. პროდუქტების წამოღება ბაზიდან
-    const { data: products } = await supabase.from("products").select("name, price, unit, description, state_type");
-    
-    // 2. ცოდნის ბაზის წამოღება
-    const { data: knowledge } = await supabase.from("ai_knowledge").select("title, content");
+    // 1. პროდუქტების წამოღება Supabase ბაზიდან
+    const { data: products } = await supabase
+      .from("products")
+      .select("name, price, unit, description, state_type");
 
-    const productsContext = products?.map(p => 
-      `- ${p.name}: ${p.price} ₾ (${p.unit}), ტიპი: ${p.state_type === 'fresh' ? 'ცოცხალი/გაუყინავი' : 'გაყინული'}. აღწერა: ${p.description || 'არ აქვს'}`
-    ).join("\n") || "პროდუქტები არ არის";
+    // 2. ცოდნის ბაზის წამოღება Supabase-იდან
+    const { data: knowledge } = await supabase
+      .from("ai_knowledge")
+      .select("title, content");
 
-    const knowledgeContext = knowledge?.map(k => 
-      `--- ${k.title} ---\n${k.content}`
-    ).join("\n\n") || "დამატებითი დოკუმენტები არ არის";
+    const productsContext = products?.length 
+      ? products.map(p => `- ${p.name}: ${p.price} ₾ (${p.unit}), ტიპი: ${p.state_type === 'fresh' ? 'ცოცხალი/გაუყინავი' : 'გაყინული'}`).join("\n")
+      : "ხინკალი (შერეული ხორცით): 1.40 ₾, პელმენი: 28.00 ₾ / კგ, პელმენი (საქონლის ხორცით): 12.00 ₾ / კგ";
 
-    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
+    const knowledgeContext = knowledge?.length
+      ? knowledge.map(k => `--- ${k.title} ---\n${k.content}`).join("\n\n")
+      : "";
 
-ოფიციალური საკონტაქტო ინფორმაცია:
-- ტელეფონი: +995 551 50 06 06 (ან 551 50 06 06)
+    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) AI ასისტენტი.
+
+ოფიციალური საკონტაქტო ინფო:
+- ტელეფონი: +995 551 50 06 06
 - ელ-ფოსტა: ninika.kitchen@gmail.com
 - მისამართი: ოზურგეთი, ს. მგელაძის 3
 
-პროდუქტების აქტუალური სია (ფასები და დასახელებები):
+აქტუალური პროდუქტები და ზუსტი ფასები:
 ${productsContext}
 
-დამატებითი ცოდნის ბაზა და დოკუმენტები:
 ${knowledgeContext}
 
-მკაცრი ინსტრუქციები:
-1. უპასუხე მხოლოდ ქართულად, მეგობრული და ბუნებრივი ტონით.
-2. ნურასოდეს დაიწყებ პასუხს ხელახალი მისალმებით (არ თქვა "გამარჯობა!", "რით შემიძლია დაგეხმაროთ?" და ა.შ.). მომხმარებელს უკვე მიესალმე! უპასუხე პირდაპირ დასმულ კითხვას.
-3. თუ კითხვა ეხება პროდუქტის ფასს (მაგ: "რა ღირს კოტლეტი?"), ეგრევე ამოიღე ფასი პროდუქტების სიიდან და მიუწერე ზუსტი პასუხი!
-4. შეკვეთის გაფორმებაზე კითხვისას: აუხსენი, რომ შეკვეთა ხდება საიტზე (ninika.ge) კალათის საშუალებით, ან პირდაპირ დარეკონ ნომერზე: 551 50 06 06.
-5. იყავი მოკლე, კონკრეტული და დამხმარე.`;
+მნიშვნელოვანი წესები:
+1. უპასუხე მხოლოდ ქართულად!
+2. არასოდეს გამოიყენო მისალმება პასუხის დასაწყისში! მომხმარებელი უკვე მოგესალმა.
+3. თუ კითხვა ეხება ფასს (მაგ: "რა ღირს ხინკალი?" ან "რა ღირს კოტლეტი?"), ეგრევე უპასუხე ზუსტი ფასი ზემოთ მოყვანილი სიიდან!
+4. იყავი მოკლე, კონკრეტული და მეგობრული.`;
 
-    // ისტორიის უსაფრთხო ფორმატირება
+    // ისტორიის ფორმატირება
     const formattedHistory = Array.isArray(history)
       ? history
-          .filter((msg: any) => msg && (msg.text || msg.content))
+          .filter((msg: any) => msg && msg.text)
           .map((msg: any) => ({
             role: msg.sender === "user" || msg.role === "user" ? "user" : "model",
-            parts: [{ text: String(msg.text || msg.content) }]
+            parts: [{ text: String(msg.text) }]
           }))
       : [];
 
@@ -76,7 +78,7 @@ ${knowledgeContext}
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Gemini API Error details:", data);
+      console.error("Gemini Error:", data);
       return NextResponse.json({ reply: `API შეცდომა: ${data.error?.message || "უცნობი ხარვეზი"}` });
     }
 
@@ -84,7 +86,7 @@ ${knowledgeContext}
 
     return NextResponse.json({ reply });
   } catch (error: any) {
-    console.error("Chat API Error:", error);
-    return NextResponse.json({ reply: "სერვერული ხარვეზია. გთხოვთ სცადოთ მოგვიანებით." }, { status: 500 });
+    console.error("Chat Server Error:", error);
+    return NextResponse.json({ reply: "სერვერული ხარვეზია." }, { status: 500 });
   }
 }
