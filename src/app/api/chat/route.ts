@@ -1,14 +1,20 @@
 import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
     const { message } = await req.json();
 
-    // 1. პროდუქტების წამოღება (ავტომატური განახლებისთვის)
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ reply: "API Key არ არის მითითებული (.env.local-ში ან Vercel-ში)." }, { status: 500 });
+    }
+
+    // 1. პროდუქტების წამოღება ბაზიდან
     const { data: products } = await supabase.from("products").select("name, price, unit, description, state_type");
     
-    // 2. ცოდნის ბაზის წამოღება (ადმინიდან ატვირთული დოკუმენტები)
+    // 2. ცოდნის ბაზის წამოღება
     const { data: knowledge } = await supabase.from("ai_knowledge").select("title, content");
 
     const productsContext = products?.map(p => 
@@ -19,8 +25,7 @@ export async function POST(req: Request) {
       `--- ${k.title} ---\n${k.content}`
     ).join("\n\n") || "დამატებითი დოკუმენტები არ არის";
 
-    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი, ზრდილობიანი და დამხმარე AI ასისტენტი.
-შენი სახელია იაკო. შენი მიზანია უპასუხო მომხმარებლის კითხვებს "ნინიკას" პროდუქციაზე, ფასებზე, მიწოდებასა და კომპანიის შესახებ.
+    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
 
 პროდუქტების აქტუალური სია:
 ${productsContext}
@@ -29,33 +34,20 @@ ${productsContext}
 ${knowledgeContext}
 
 ინსტრუქცია:
-1. უპასუხე მხოლოდ ქართულ ენაზე, მეგობრული ტონით.
-2. როდესაც მომხმარებელი გესალმება, პირველ რიგში წარუდგინე თავი: "გამარჯობა! მე ვარ იაკო, თქვენი AI ასისტენტი".
-3. გამოიყენე ზუსტი ფასები და ინფორმაცია ზემოთ მოყვანილი სიიდან.
-4. თუ კითხვა ეხება პროდუქტს, რომელიც სიაში არ არის, თქვი რომ ამჟამად არ გაქვთ, მაგრამ შეგიძლიათ მიაწოდოთ ინფორმაცია არსებულზე.
-5. იყავი მოკლე, სუფთა და კონკრეტული.`;
+1. უპასუხე მხოლოს ქართულად, მეგობრული ტონით.
+2. გამოიყენე ზუსტი ინფო და ფასები ზემოთ მოყვანილი სიიდან.
+3. იყავი მოკლე და კონკრეტული.`;
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "API Key missing" }, { status: 500 });
-    }
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          { role: "user", parts: [{ text: `${systemPrompt}\n\nმომხმარებლის კითხვა: ${message}` }] }
-        ]
-      })
-    });
-
-    const data = await response.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "ბოდიში, პასუხის გენერირება ვერ მოხერხდა.";
+    const result = await model.generateContent(`${systemPrompt}\n\nმომხმარებლის კითხვა: ${message}`);
+    const response = await result.response;
+    const reply = response.text();
 
     return NextResponse.json({ reply });
-  } catch (error) {
-    console.error("Chat error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Chat API Error:", error);
+    return NextResponse.json({ reply: "ბოდიში, ხარვეზია კავშირში. სცადეთ მოგვიანებით." }, { status: 500 });
   }
 }

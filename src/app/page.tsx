@@ -379,18 +379,6 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="text-center text-xs opacity-70 text-[#C6A265] pb-8">
-        Powered by{" "}
-        <a
-          href="https://www.cdc.org.ge/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline font-semibold hover:opacity-100 transition-opacity"
-        >
-          CDC Studio
-        </a>
-      </footer>
-
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#253e2f] border border-[#C6A265]/30 p-4 rounded-3xl w-full max-w-2xl relative shadow-2xl">
