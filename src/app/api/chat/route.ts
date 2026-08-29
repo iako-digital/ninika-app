@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
-    const lastMessage = messages[messages.length - 1].content;
+    const { message } = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ reply: "API Key არ არის მითითებული." }, { status: 500 });
+      return NextResponse.json({ reply: "API Key არ არის მითითებული Vercel-ში." }, { status: 500 });
     }
 
     // 1. პროდუქტების წამოღება ბაზიდან
@@ -26,8 +24,7 @@ export async function POST(req: Request) {
       `--- ${k.title} ---\n${k.content}`
     ).join("\n\n") || "დამატებითი დოკუმენტები არ არის";
 
-    const systemInstruction = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
-შენი სახელია იაკო. როდესაც მომხმარებელი გესალმება, პირველ რიგში წარუდგინე თავი: "გამარჯობა! მე ვარ იაკო, თქვენი AI ასისტენტი".
+    const systemPrompt = `შენ ხარ "იაკო" — საოჯახო სამზარეულო "ნინიკას" (ninika.ge) ენერგიული, თბილი და დამხმარე AI ასისტენტი.
 
 პროდუქტების აქტუალური სია:
 ${productsContext}
@@ -36,29 +33,35 @@ ${productsContext}
 ${knowledgeContext}
 
 ინსტრუქცია:
-1. უპასუხე მხოლოს ქართულად, მეგობრული ტონით.
+1. უპასუხე მხოლოდ ქართულად, მეგობრული ტონით.
 2. გამოიყენე ზუსტი ინფო და ფასები ზემოთ მოყვანილი სიიდან.
 3. იყავი მოკლე და კონკრეტული.`;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: systemInstruction
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: `${systemPrompt}\n\nმომხმარებლის კითხვა: ${message}` }]
+          }
+        ]
+      })
     });
 
-    const chat = model.startChat({
-      history: messages.slice(0, -1).map((m: any) => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }],
-      })),
-    });
+    const data = await response.json();
 
-    const result = await chat.sendMessage(lastMessage);
-    const reply = result.response.text();
+    if (!response.ok) {
+      console.error("Gemini API Error details:", data);
+      return NextResponse.json({ reply: `API შეცდომა: ${data.error?.message || "უცნობი ხარვეზი"}` });
+    }
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "ბოდიში, პასუხის გენერირება ვერ მოხერხდა.";
 
     return NextResponse.json({ reply });
   } catch (error: any) {
     console.error("Chat API Error:", error);
-    return NextResponse.json({ reply: "ბოდიში, ხარვეზია კავშირში. სცადეთ მოგვიანებით." }, { status: 500 });
+    return NextResponse.json({ reply: "სერვერული ხარვეზია. გთხოვთ სცადოთ მოგვიანებით." }, { status: 500 });
   }
 }
