@@ -17,6 +17,7 @@ const TABLE_SETUP_SQL: Record<string, string> = {
   description text,
   image text,
   video_url text,
+  is_available boolean not null default true,
   created_at timestamptz not null default now()
 );
 alter table products enable row level security;
@@ -222,6 +223,13 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleAvailability = async (product: any) => {
+    const newValue = !(product.is_available ?? true);
+    const { error } = await supabase.from("products").update({ is_available: newValue }).eq("id", product.id);
+    if (error) reportSupabaseError(error, "products", "სტატუსის განახლებისას");
+    else setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, is_available: newValue } : p)));
+  };
+
   const resetForm = () => {
     setEditingId(null);
     setName("");
@@ -366,26 +374,42 @@ export default function AdminPage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold text-[#d4af37]">არსებული მენიუ ({products.length})</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {products.map((p) => (
-            <div key={p.id} className="bg-[#1e242b] p-4 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between gap-4">
-              <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
-              <div className="flex-1">
-                <h3 className="font-bold text-lg">{p.name}</h3>
-                <p className="text-[#d4af37] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>
-                {Array.isArray(p.categories) && p.categories.length > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">🏷️ {p.categories.join(", ")}</p>
-                )}
+          {products.map((p) => {
+            const isAvailable = p.is_available !== false;
+            return (
+              <div key={p.id} className="bg-[#1e242b] p-4 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between gap-4">
+                <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg">{p.name}</h3>
+                  <p className="text-[#d4af37] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>
+                  {Array.isArray(p.categories) && p.categories.length > 0 && (
+                    <p className="text-xs text-gray-400 mt-1">🏷️ {p.categories.join(", ")}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAvailability(p)}
+                    className="mt-2 flex items-center gap-2"
+                    title={isAvailable ? "მარაგშია — დააჭირეთ სტოპისთვის" : "სტოპი — დააჭირეთ მარაგში დასაბრუნებლად"}
+                  >
+                    <span className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${isAvailable ? "bg-green-500/70" : "bg-red-500/60"}`}>
+                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition ${isAvailable ? "translate-x-4.5" : "translate-x-1"}`} />
+                    </span>
+                    <span className={`text-xs font-bold ${isAvailable ? "text-green-400" : "text-red-400"}`}>
+                      {isAvailable ? "მარაგშია" : "სტოპი"}
+                    </span>
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleEdit(p)} className="p-2 bg-[#d4af37]/20 hover:bg-[#d4af37]/40 text-[#d4af37] rounded-lg">
+                    <Edit size={18} />
+                  </button>
+                  <button onClick={() => handleDelete(p.id)} className="p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => handleEdit(p)} className="p-2 bg-[#d4af37]/20 hover:bg-[#d4af37]/40 text-[#d4af37] rounded-lg">
-                  <Edit size={18} />
-                </button>
-                <button onClick={() => handleDelete(p.id)} className="p-2 bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded-lg">
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

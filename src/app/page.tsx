@@ -235,10 +235,21 @@ export default function Home() {
               <p className="text-center text-lg py-12 opacity-70">პროდუქტები არ მოიძებნა...</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200`}>
-                    <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
-                    
+                {filteredProducts.map((product) => {
+                  const isOutOfStock = product.is_available === false;
+                  return (
+                  <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200 ${isOutOfStock ? "opacity-60" : ""}`}>
+                    <div className="relative">
+                      <img src={product.image} alt={product.name} className={`w-full h-48 object-cover ${isOutOfStock ? "grayscale" : ""}`} />
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                          <span className="bg-black/80 text-[#C6A265] text-sm font-bold px-4 py-2 rounded-full border border-[#C6A265]/50 whitespace-nowrap">
+                            დროებით ამოიწურა ⏳
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="p-5 flex-1 flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start mb-2">
@@ -271,17 +282,30 @@ export default function Home() {
                       </div>
                       
                       <div className="mt-auto flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-[#C6A265]/30">
-                        <button onClick={() => updateQuantity(product.id, -1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black font-bold shadow hover:bg-[#C6A265] hover:text-white transition">
+                        <button
+                          onClick={() => updateQuantity(product.id, -1)}
+                          disabled={isOutOfStock}
+                          className={`w-9 h-9 flex items-center justify-center rounded-full font-bold shadow transition ${
+                            isOutOfStock ? "bg-white/40 text-black/40 cursor-not-allowed" : "bg-white text-black hover:bg-[#C6A265] hover:text-white"
+                          }`}
+                        >
                           <Minus size={16} />
                         </button>
                         <span className="font-bold text-lg w-8 text-center">{getQuantity(product.id)}</span>
-                        <button onClick={() => updateQuantity(product.id, 1)} className="w-9 h-9 flex items-center justify-center rounded-full bg-[#C6A265] text-black font-bold shadow hover:bg-gold transition">
+                        <button
+                          onClick={() => updateQuantity(product.id, 1)}
+                          disabled={isOutOfStock}
+                          className={`w-9 h-9 flex items-center justify-center rounded-full font-bold shadow transition ${
+                            isOutOfStock ? "bg-[#C6A265]/40 text-black/40 cursor-not-allowed" : "bg-[#C6A265] text-black hover:bg-gold"
+                          }`}
+                        >
                           <Plus size={16} />
                         </button>
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
