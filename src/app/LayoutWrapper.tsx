@@ -8,7 +8,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([
-    { role: "assistant", text: "გამარჯობა! მე ვარ იაკო, თქვენი AI ასისტენტი. რით შემიძლია დაგეხმაროთ? 😊" }
+    { role: "assistant", text: "გამარჯობა! მე ვარ ნინიკა, თქვენი AI ასისტენტი. რით შემიძლია დაგეხმაროთ? 😊" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,23 +96,23 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         </button>
       )}
 
-      {/* Iako AI Floating Button */}
+      {/* Ninika AI Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-[140px] right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#C6A265] text-[#1b2e23] shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-white/20"
-        title="AI ასისტენტი იაკო"
+        title="AI ასისტენტი ნინიკა"
       >
         <Bot size={28} />
       </button>
 
 
-      {/* Iako Chat Modal */}
+      {/* Ninika Chat Modal */}
       {isOpen && (
         <div className="fixed bottom-[210px] right-6 z-50 w-80 sm:w-96 rounded-2xl bg-[#1e242b] border border-[#d4af37]/40 shadow-2xl overflow-hidden flex flex-col h-[450px]">
           <div className="bg-[#d4af37] text-[#121619] p-4 flex justify-between items-center font-bold">
             <div className="flex items-center gap-2">
               <Bot size={20} />
-              <span>იაკო - ნინიკას AI ასისტენტი</span>
+              <span>ნინიკა - AI ასისტენტი</span>
             </div>
             <button onClick={() => setIsOpen(false)} className="hover:opacity-70">
               <X size={20} />
@@ -126,7 +126,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                 </div>
               </div>
             ))}
-            {loading && <div className="text-xs italic text-white/50">იაკო ფიქრობს...</div>}
+            {loading && <div className="text-xs italic text-white/50">ნინიკა ფიქრობს...</div>}
           </div>
           <div className="p-3 border-t border-white/10 bg-[#121619]">
             <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
@@ -134,7 +134,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="ჰკითხე იაკოს..."
+                placeholder="ჰკითხე ნინიკას..."
                 className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#d4af37]"
               />
               <button type="submit" className="bg-[#d4af37] text-[#121619] px-4 py-2 rounded-xl font-bold text-sm">➤</button>

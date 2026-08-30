@@ -9,8 +9,11 @@ import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
 
-const BANK_ACCOUNT = "GE00TB0000000000000000"; 
-const BANK_NAME = "თიბისი ბანკი (შპს ნინიკა / ლელა საჯაია)";
+const ACCOUNT_HOLDER = "ნინო რამიშვილი (Nino Ramishvili)";
+const BANK_ACCOUNTS = [
+  { bank: "საქართველოს ბანკი (Bank of Georgia)", iban: "GE83BG0000000533988390" },
+  { bank: "თიბისი ბანკი (TBC Bank)", iban: "GE04TB7443345064300113" },
+];
 
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
@@ -28,6 +31,7 @@ export default function Home() {
   const [paymentMethod, setPaymentMethod] = useState("ადგილზე გადახდა (ნაღდი/ბარათი)");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedIban, setCopiedIban] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -68,6 +72,12 @@ export default function Home() {
   };
 
   const getQuantity = (id: number) => cart.find((item) => item.id === id)?.quantity || 0;
+
+  const handleCopyIban = (iban: string) => {
+    navigator.clipboard.writeText(iban);
+    setCopiedIban(iban);
+    setTimeout(() => setCopiedIban((prev) => (prev === iban ? null : prev)), 2000);
+  };
   
   const cartTotal = cart.reduce((total, item) => {
     const product = products.find((p) => p.id === item.id);
@@ -405,7 +415,7 @@ export default function Home() {
                 <Mail className="text-[#C6A265]" size={24} />
                 <div>
                   <p className="text-xs opacity-70">ელ.ფოსტა</p>
-                  <a href="mailto:ninika.kitchen@gmail.com" className="font-bold text-[#C6A265] hover:underline">ninika.kitchen@gmail.com</a>
+                  <a href="mailto:info@ninika.ge" className="font-bold text-[#C6A265] hover:underline">info@ninika.ge</a>
                 </div>
               </div>
             </div>
@@ -540,24 +550,30 @@ export default function Home() {
 
               {paymentMethod.includes("ანგარიშის") && (
                 <div className="space-y-4 pt-2 border-t border-[#C6A265]/20">
-                  <div className="bg-black/30 p-4 rounded-2xl border border-[#C6A265]/30 space-y-2 text-sm">
+                  <div className="bg-black/30 p-4 rounded-2xl border border-[#C6A265]/30 space-y-3 text-sm">
                     <p className="font-bold text-[#C6A265] flex items-center gap-2">
                       <CreditCard size={18} /> გადახდის რეკვიზიტები
                     </p>
-                    <p className="text-xs opacity-80">{BANK_NAME}</p>
-                    <div className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-[#C6A265]/20">
-                      <span className="font-mono text-xs font-bold tracking-wider">{BANK_ACCOUNT}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(BANK_ACCOUNT);
-                          alert("ანგარიშის ნომერი დაკოპირდა!");
-                        }}
-                        className="text-xs text-[#C6A265] hover:underline font-bold"
-                      >
-                        კოპირება
-                      </button>
-                    </div>
+                    <p className="text-xs opacity-80">
+                      ანგარიშის მფლობელი: <span className="font-semibold text-white">{ACCOUNT_HOLDER}</span>
+                    </p>
+                    {BANK_ACCOUNTS.map((acc) => (
+                      <div key={acc.iban} className="space-y-1">
+                        <p className="text-xs opacity-80">{acc.bank}</p>
+                        <div className="flex justify-between items-center bg-black/40 p-2.5 rounded-xl border border-[#C6A265]/20 gap-2">
+                          <span className="font-mono text-xs font-bold tracking-wider break-all">{acc.iban}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIban(acc.iban)}
+                            className={`shrink-0 text-xs font-bold whitespace-nowrap transition ${
+                              copiedIban === acc.iban ? "text-green-400" : "text-[#C6A265] hover:underline"
+                            }`}
+                          >
+                            {copiedIban === acc.iban ? "დაკოპირდა! ✓" : "დაკოპირება"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <div>

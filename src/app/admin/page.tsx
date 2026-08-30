@@ -416,7 +416,7 @@ export default function AdminPage() {
       {/* AI Knowledge Base Management */}
       <section className="space-y-6">
         <h2 className="text-2xl font-bold text-[#d4af37] flex items-center gap-2">
-          <Bot /> 🧠 AI ასისტენტ იაკოს ცოდნის ბაზა / დოკუმენტები
+          <Bot /> 🧠 AI ასისტენტ ნინიკას ცოდნის ბაზა / დოკუმენტები
         </h2>
         
         <form onSubmit={handleAddKnowledge} className="bg-[#1e242b] p-6 rounded-2xl border border-[#d4af37]/30 space-y-4">

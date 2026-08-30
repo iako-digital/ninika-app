@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const { data, error } = await resend.emails.send({
       from: "ნინიკა <orders@ninika.ge>",
-      to: ["ninika.kitchen@gmail.com"],
+      to: ["info@ninika.ge"],
       subject: `ახალი შეკვეთა: ${name}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1A1A1A;">
