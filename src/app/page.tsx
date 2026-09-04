@@ -327,9 +327,25 @@ export default function Home() {
               <img src={ABOUT_IMAGE_URL} alt="ნინიკა - ჩვენს შესახებ" className="w-full h-auto object-cover max-h-[450px]" />
             </div>
 
-            <h2 className="text-3xl font-bold text-[#C6A265] border-b border-[#C6A265]/20 pb-3 flex items-center gap-2">
-              <Heart size={28} /> მეტი, ვიდრე კულინარია
-            </h2>
+            <div className="flex items-center justify-between flex-wrap gap-3 border-b border-[#C6A265]/20 pb-3">
+              <h2 className="text-3xl font-bold text-[#C6A265] flex items-center gap-2">
+                <Heart size={28} /> მეტი, ვიდრე კულინარია
+              </h2>
+              <div className="flex items-center gap-3">
+                <a href="https://www.facebook.com/ninika.ge" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-[#C6A265]/70 hover:text-[#C6A265] transition-transform transform hover:scale-110">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                </a>
+                <a href="https://www.instagram.com/ninika.ge/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-[#C6A265]/70 hover:text-[#C6A265] transition-transform transform hover:scale-110">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </a>
+                <a href="https://www.tiktok.com/@ninika.kitchen" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="text-[#C6A265]/70 hover:text-[#C6A265] transition-transform transform hover:scale-110">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                </a>
+                <a href="https://www.youtube.com/@Ninika-ge" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="text-[#C6A265]/70 hover:text-[#C6A265] transition-transform transform hover:scale-110">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
+                </a>
+              </div>
+            </div>
 
             <div className="space-y-4 text-base md:text-lg leading-relaxed opacity-90">
               <p>
@@ -384,6 +400,10 @@ export default function Home() {
               <div className="pt-4 text-[#C6A265] font-bold flex flex-wrap gap-2 text-sm">
                 #ნინიკა #სიყვარულითმომზადებული #ნახევარფაბრიკატები #ოჯახურიტრადიცია #ქართულიკულინარია #დამოუკიდებელიმომავალი #გურულიგემო #ოზურგეთი
               </div>
+
+              <p className="text-right italic text-[#C6A265]/80 text-sm pt-2">
+                — „ნინიკას“ თანადამფუძნებელი, ლელა საჯაია
+              </p>
             </div>
           </section>
         )}
