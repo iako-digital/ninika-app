@@ -402,7 +402,7 @@ export default function Home() {
               </div>
 
               <p className="text-right italic text-[#C6A265]/80 text-sm pt-2">
-                — „ნინიკას“ თანადამფუძნებელი, ლელა საჯაია
+                — „ნინიკას“ დამფუძნებელი, ლელა საჯაია
               </p>
             </div>
           </section>
