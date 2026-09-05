@@ -5,7 +5,9 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
-import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2 } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2, Search, SlidersHorizontal } from "lucide-react";
+
+type SortOption = "none" | "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
 const ABOUT_IMAGE_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787778078/kjjj9csmntqx76go6kha.jpg";
@@ -25,6 +27,11 @@ export default function Home() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>("ყველა");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("none");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -52,6 +59,17 @@ export default function Home() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isFilterOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isFilterOpen]);
 
   const fetchProducts = async () => {
     const { data, error } = await supabase.from("products").select("*").order("id", { ascending: true });
@@ -90,27 +108,39 @@ export default function Home() {
   const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
 
   // 🛠️ გასწორებული ფილტრაციის ლოგიკა
-  const filteredProducts = products.filter((p) => {
-    if (selectedCategory === "ყველა") return true;
-    if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი") || (p.categories || []).includes("ხინკალი");
-    if (selectedCategory === "პელმენი") return p.name.includes("პელმენი") || (p.categories || []).includes("პელმენი");
-    if (selectedCategory === "ვარენიკი") return p.name.includes("ვარენიკი") || (p.categories || []).includes("ვარენიკი");
-    if (selectedCategory === "კოტლეტი") return p.name.includes("კოტლეტი") || p.name.includes("გუფთა") || (p.categories || []).includes("კოტლეტი");
-    if (selectedCategory === "ქაბაბი") return p.name.includes("ქაბაბი") || (p.categories || []).includes("ქაბაბი");
-    if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს") || (p.categories || []).includes("სამარხვო");
-    
-    // მხოლოდ ცოცხალი / გაუყინავი (გამორიცხავს გაყინულებს)
-    if (selectedCategory === "ცოცხალი / გაუყინავი") {
-      return p.state_type === "fresh" || p.name.includes("ცოცხალი") || p.name.includes("გაუყინავი");
-    }
-    
-    // მხოლოდ გაყინული
-    if (selectedCategory === "❄️ გაყინული") {
-      return p.state_type === "frozen" || (!p.state_type && !p.name.includes("ცოცხალი") && !p.name.includes("გაუყინავი"));
-    }
-    
-    return true;
-  });
+  const filteredProducts = products
+    .filter((p) => {
+      if (selectedCategory === "ყველა") return true;
+      if (selectedCategory === "ხინკალი") return p.name.includes("ხინკალი") || (p.categories || []).includes("ხინკალი");
+      if (selectedCategory === "პელმენი") return p.name.includes("პელმენი") || (p.categories || []).includes("პელმენი");
+      if (selectedCategory === "ვარენიკი") return p.name.includes("ვარენიკი") || (p.categories || []).includes("ვარენიკი");
+      if (selectedCategory === "კოტლეტი") return p.name.includes("კოტლეტი") || p.name.includes("გუფთა") || (p.categories || []).includes("კოტლეტი");
+      if (selectedCategory === "ქაბაბი") return p.name.includes("ქაბაბი") || (p.categories || []).includes("ქაბაბი");
+      if (selectedCategory === "სამარხვო") return p.name.includes("სამარხვო") || p.name.includes("სოკოს") || (p.categories || []).includes("სამარხვო");
+
+      // მხოლოდ ცოცხალი / გაუყინავი (გამორიცხავს გაყინულებს)
+      if (selectedCategory === "ცოცხალი / გაუყინავი") {
+        return p.state_type === "fresh" || p.name.includes("ცოცხალი") || p.name.includes("გაუყინავი");
+      }
+
+      // მხოლოდ გაყინული
+      if (selectedCategory === "❄️ გაყინული") {
+        return p.state_type === "frozen" || (!p.state_type && !p.name.includes("ცოცხალი") && !p.name.includes("გაუყინავი"));
+      }
+
+      return true;
+    })
+    .filter((p) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .filter((p) => !inStockOnly || p.is_available !== false)
+    .sort((a, b) => {
+      if (sortOption === "name-asc") return a.name.localeCompare(b.name, "ka");
+      if (sortOption === "name-desc") return b.name.localeCompare(a.name, "ka");
+      if (sortOption === "price-asc") return a.price - b.price;
+      if (sortOption === "price-desc") return b.price - a.price;
+      return 0;
+    });
+
+  const isFilterActive = sortOption !== "none" || inStockOnly;
 
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,10 +250,118 @@ export default function Home() {
       <main className="p-4 md:p-6 max-w-5xl mx-auto">
         {activeTab === "menu" && (
           <section>
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2 border-b border-[#C6A265]/20 pb-3">
-              <h2 className="text-2xl md:text-3xl font-bold text-[#C6A265] flex items-center gap-2">
-                <Utensils size={28} /> ჩვენი მენიუ
-              </h2>
+            <div className="mb-4 border-b border-[#C6A265]/20 pb-3 space-y-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-[#C6A265] flex items-center gap-2">
+                  <Utensils size={28} /> ჩვენი მენიუ
+                </h2>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1 md:flex-initial md:w-56">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C6A265]/60" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="მოძებნე პროდუქტი..."
+                      className="w-full pl-9 pr-3 py-1.5 rounded-full bg-black/20 border border-[#C6A265]/20 text-sm text-[#C6A265] placeholder:text-[#C6A265]/40 focus:outline-none focus:border-[#C6A265]/60"
+                    />
+                  </div>
+
+                  <div className="relative" ref={filterRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsFilterOpen((v) => !v)}
+                      title="ფილტრი და სორტირება"
+                      className={`p-2 rounded-full border transition shrink-0 ${
+                        isFilterActive
+                          ? "bg-[#C6A265] text-black border-[#C6A265]"
+                          : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
+                      }`}
+                    >
+                      <SlidersHorizontal size={16} />
+                    </button>
+
+                    {isFilterOpen && (
+                      <div className="absolute right-0 mt-2 w-60 bg-[#253e2f] border border-[#C6A265]/30 rounded-2xl shadow-2xl p-4 space-y-4 z-30 text-sm text-[#F9F6F0]">
+                        <div>
+                          <p className="text-xs font-bold text-[#C6A265] mb-2">ანბანის მიხედვით</p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSortOption((s) => (s === "name-asc" ? "none" : "name-asc"))}
+                              className={`flex-1 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                                sortOption === "name-asc" ? "bg-[#C6A265] text-black border-[#C6A265]" : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
+                              }`}
+                            >
+                              ა → ჰ
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSortOption((s) => (s === "name-desc" ? "none" : "name-desc"))}
+                              className={`flex-1 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                                sortOption === "name-desc" ? "bg-[#C6A265] text-black border-[#C6A265]" : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
+                              }`}
+                            >
+                              ჰ → ა
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-bold text-[#C6A265] mb-2">ფასის მიხედვით</p>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSortOption((s) => (s === "price-asc" ? "none" : "price-asc"))}
+                              className={`flex-1 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                                sortOption === "price-asc" ? "bg-[#C6A265] text-black border-[#C6A265]" : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
+                              }`}
+                            >
+                              ზრდადობით
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSortOption((s) => (s === "price-desc" ? "none" : "price-desc"))}
+                              className={`flex-1 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition ${
+                                sortOption === "price-desc" ? "bg-[#C6A265] text-black border-[#C6A265]" : "bg-black/20 text-[#C6A265] border-[#C6A265]/20 hover:border-[#C6A265]/50"
+                              }`}
+                            >
+                              კლებადობით
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-bold text-[#C6A265] mb-2">სტატუსი</p>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={inStockOnly}
+                              onChange={(e) => setInStockOnly(e.target.checked)}
+                              className="accent-[#C6A265]"
+                            />
+                            <span>მხოლოდ ხელმისაწვდომი (In Stock)</span>
+                          </label>
+                        </div>
+
+                        {isFilterActive && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSortOption("none");
+                              setInStockOnly(false);
+                            }}
+                            className="w-full text-center text-xs text-red-400 hover:text-red-300 pt-1 border-t border-[#C6A265]/10"
+                          >
+                            გასუფთავება
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
                 {["ყველა", "ხინკალი", "პელმენი", "ვარენიკი", "კოტლეტი", "ქაბაბი", "სამარხვო", "ცოცხალი / გაუყინავი", "❄️ გაყინული"].map((category) => (
