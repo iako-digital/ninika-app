@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { Edit, Trash2, Eye, EyeOff, Bot } from "lucide-react";
 
 const TABLE_SETUP_SQL: Record<string, string> = {
@@ -350,7 +351,7 @@ export default function AdminPage() {
           {uploading && <p className="text-xs text-[#d4af37] mt-1">ფოტო იტვირთება Cloudinary-ში...</p>}
           {imageUrl && (
             <div className="mt-3">
-              <img src={imageUrl} alt="Uploaded" className="h-32 rounded-xl object-cover border border-[#d4af37]/30" />
+              <img src={optimizeCloudinaryUrl(imageUrl)} alt="Uploaded" className="h-32 rounded-xl object-cover border border-[#d4af37]/30" />
             </div>
           )}
         </div>
@@ -378,7 +379,7 @@ export default function AdminPage() {
             const isAvailable = p.is_available !== false;
             return (
               <div key={p.id} className="bg-[#1e242b] p-4 rounded-2xl border border-[#d4af37]/20 flex items-center justify-between gap-4">
-                <img src={p.image} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
+                <img src={optimizeCloudinaryUrl(p.image)} alt={p.name} className="w-16 h-16 rounded-xl object-cover" />
                 <div className="flex-1">
                   <h3 className="font-bold text-lg">{p.name}</h3>
                   <p className="text-[#d4af37] text-sm">{p.price.toFixed(2)} ₾ / {p.unit}</p>

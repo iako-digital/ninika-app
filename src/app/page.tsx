@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
+import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
 import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2 } from "lucide-react";
 
 const LOGO_URL = "https://res.cloudinary.com/dmcabui00/image/upload/v1787649626/ggef5dtdlwjuigdgmfnv.jpg";
@@ -190,7 +191,7 @@ export default function Home() {
     <div className={`min-h-screen ${bgClass} pb-24 font-sans transition-colors duration-300 relative`}>
       <nav className={`${headerBgClass} sticky top-0 z-40 px-4 md:px-6 py-3 shadow-md flex items-center justify-between border-b border-[#C6A265]/20`}>
         <div className="flex items-center cursor-pointer shrink-0" onClick={() => setActiveTab("menu")}>
-          <img src={LOGO_URL} alt="ნინიკა ლოგო" className="h-10 w-10 md:h-11 md:w-11 rounded-full object-cover border border-[#C6A265]" />
+          <img src={optimizeCloudinaryUrl(LOGO_URL)} alt="ნინიკა ლოგო" className="h-10 w-10 md:h-11 md:w-11 rounded-full object-cover border border-[#C6A265]" />
         </div>
         
         <div className="flex items-center gap-4 sm:gap-6 md:gap-8 text-sm sm:text-base font-semibold">
@@ -209,7 +210,7 @@ export default function Home() {
 
       <header className={`${headerBgClass} text-center py-8 px-4 shadow-inner border-b border-[#C6A265]/10 flex flex-col items-center`}>
         <img 
-          src={LOGO_URL} 
+          src={optimizeCloudinaryUrl(LOGO_URL)} 
           alt="ნინიკა - საოჯახო სამზარეულო" 
           className="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover shadow-2xl border-4 border-[#C6A265] mb-3 hover:scale-105 transition-transform" 
         />
@@ -250,7 +251,7 @@ export default function Home() {
                   return (
                   <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200 ${isOutOfStock ? "opacity-60" : ""}`}>
                     <div className="relative">
-                      <img src={product.image} alt={product.name} className={`w-full h-48 object-cover ${isOutOfStock ? "grayscale" : ""}`} />
+                      <img src={optimizeCloudinaryUrl(product.image)} alt={product.name} className={`w-full h-48 object-cover ${isOutOfStock ? "grayscale" : ""}`} />
                       {isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                           <span className="bg-black/80 text-[#C6A265] text-sm font-bold px-4 py-2 rounded-full border border-[#C6A265]/50 whitespace-nowrap">
@@ -324,7 +325,7 @@ export default function Home() {
         {activeTab === "about" && (
           <section className={`${cardBgClass} p-6 md:p-10 rounded-3xl border border-[#C6A265]/30 space-y-6 max-w-3xl mx-auto shadow-2xl`}>
             <div className="w-full overflow-hidden rounded-2xl border border-[#C6A265]/30 shadow-lg mb-6">
-              <img src={ABOUT_IMAGE_URL} alt="ნინიკა - ჩვენს შესახებ" className="w-full h-auto object-cover max-h-[450px]" />
+              <img src={optimizeCloudinaryUrl(ABOUT_IMAGE_URL)} alt="ნინიკა - ჩვენს შესახებ" className="w-full h-auto object-cover max-h-[450px]" />
             </div>
 
             <div className="flex items-center justify-between flex-wrap gap-3 border-b border-[#C6A265]/20 pb-3">
