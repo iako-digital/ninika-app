@@ -346,9 +346,9 @@ export default function AdminPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold mb-1">ფოტოს ატვირთვა (რეკომენდებული ზომა: 800x800px ან 800x600px, 1:1 / 4:3 პროპორცია)</label>
+          <label className="block text-sm font-semibold mb-1">ფოტოს ატვირთვა (რეკომენდებული ზომა: 800x450px, 16:9 პროპორცია)</label>
           <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full p-2 bg-black/20 rounded-xl border border-[#d4af37]/30 text-sm" />
-          <p className="text-xs text-[#d4af37]/70 mt-1">საუკეთესო შედეგისთვის გამოიყენეთ კვადრატული (1:1) ან 4:3 პროპორციის ფოტო, მაქს. 10MB.</p>
+          <p className="text-xs text-[#d4af37]/70 mt-1">საუკეთესო შედეგისთვის გამოიყენეთ განიერი, პანორამული (16:9) ფოტო — კვადრატული ფოტო ბარათში ზემოთ/ქვემოთ მოიჭრება. მაქს. 10MB.</p>
           {uploading && <p className="text-xs text-[#d4af37] mt-1">ფოტო იტვირთება Cloudinary-ში...</p>}
           {imageUrl && (
             <div className="mt-3">
