@@ -2,10 +2,11 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
 import { optimizeCloudinaryUrl } from "@/lib/cloudinary";
-import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2, Search, SlidersHorizontal } from "lucide-react";
+import { ShoppingBag, Plus, Minus, X, Sun, Moon, Utensils, Play, Phone, MapPin, Heart, CreditCard, Upload, Mail, MessageCircle, Send, Loader2, Search, SlidersHorizontal, Star, Share2, Check } from "lucide-react";
 
 type SortOption = "none" | "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -40,6 +41,41 @@ export default function Home() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedIban, setCopiedIban] = useState<string | null>(null);
+
+  const [ratedProductIds, setRatedProductIds] = useState<Set<number>>(new Set());
+  const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchParams = useSearchParams();
+
+  const showToast = (message: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast(message);
+    toastTimerRef.current = setTimeout(() => setToast(null), 2500);
+  };
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("ninika_rated_products") || "[]");
+      if (Array.isArray(stored)) setRatedProductIds(new Set(stored));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const productParam = searchParams.get("product");
+    if (!productParam) return;
+    const id = Number(productParam);
+    if (!Number.isFinite(id)) return;
+    setActiveTab("menu");
+    setHighlightedProductId(id);
+    const timer = setTimeout(() => setHighlightedProductId(null), 3000);
+    return () => clearTimeout(timer);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (highlightedProductId == null || products.length === 0) return;
+    document.getElementById(`product-${highlightedProductId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlightedProductId, products]);
 
   useEffect(() => {
     fetchProducts();
@@ -96,6 +132,63 @@ export default function Home() {
     navigator.clipboard.writeText(iban);
     setCopiedIban(iban);
     setTimeout(() => setCopiedIban((prev) => (prev === iban ? null : prev)), 2000);
+  };
+
+  const handleShare = async (product: any) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?product=${product.id}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${product.name} — ნინიკა`, text: product.description || product.name, url: shareUrl });
+      } catch (err: any) {
+        if (err?.name !== "AbortError") console.error("Share failed:", err);
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast("ბმული დაკოპირებულია!");
+    } catch (err) {
+      console.error("Clipboard write failed:", err);
+      showToast("ბმულის კოპირება ვერ მოხერხდა.");
+    }
+  };
+
+  const handleRate = async (product: any, stars: number) => {
+    if (ratedProductIds.has(product.id)) return;
+
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, rating_sum: (p.rating_sum || 0) + stars, rating_count: (p.rating_count || 0) + 1 } : p))
+    );
+    setRatedProductIds((prev) => {
+      const next = new Set(prev).add(product.id);
+      try {
+        localStorage.setItem("ninika_rated_products", JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+
+    const { error } = await supabase.rpc("increment_product_rating", { p_product_id: product.id, p_stars: stars });
+    if (error) {
+      console.error("Rating failed:", error);
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? { ...p, rating_sum: Math.max(0, (p.rating_sum || 0) - stars), rating_count: Math.max(0, (p.rating_count || 0) - 1) }
+            : p
+        )
+      );
+      setRatedProductIds((prev) => {
+        const next = new Set(prev);
+        next.delete(product.id);
+        try {
+          localStorage.setItem("ninika_rated_products", JSON.stringify([...next]));
+        } catch {}
+        return next;
+      });
+      showToast("შეფასების გაგზავნა ვერ მოხერხდა.");
+    }
   };
   
   const cartTotal = cart.reduce((total, item) => {
@@ -386,8 +479,16 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => {
                   const isOutOfStock = product.is_available === false;
+                  const ratingCount = product.rating_count || 0;
+                  const ratingAvg = ratingCount > 0 ? (product.rating_sum || 0) / ratingCount : 0;
+                  const hasUserRated = ratedProductIds.has(product.id);
+                  const isHighlighted = highlightedProductId === product.id;
                   return (
-                  <div key={product.id} className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200 ${isOutOfStock ? "opacity-60" : ""}`}>
+                  <div
+                    key={product.id}
+                    id={`product-${product.id}`}
+                    className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200 ${isOutOfStock ? "opacity-60" : ""} ${isHighlighted ? "ring-4 ring-[#C6A265]" : ""}`}
+                  >
                     <div className="relative">
                       <img src={optimizeCloudinaryUrl(product.image)} alt={product.name} className={`w-full h-48 object-cover ${isOutOfStock ? "grayscale" : ""}`} />
                       {isOutOfStock && (
@@ -416,6 +517,37 @@ export default function Home() {
                             {Number(product.price).toFixed(2)} ₾ <span className="text-xs font-normal opacity-70">/ {product.unit}</span>
                           </p>
                         </div>
+
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-1.5">
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  disabled={hasUserRated}
+                                  onClick={() => handleRate(product, star)}
+                                  title={hasUserRated ? "თქვენ უკვე შეაფასეთ ეს პროდუქტი" : `შეაფასეთ ${star} ვარსკვლავით`}
+                                  className={hasUserRated ? "cursor-default" : "cursor-pointer hover:scale-110 transition"}
+                                >
+                                  <Star size={14} className={star <= Math.round(ratingAvg) ? "text-[#C6A265] fill-[#C6A265]" : "text-[#C6A265]/30"} />
+                                </button>
+                              ))}
+                            </div>
+                            <span className="text-xs text-[#C6A265]/80 font-semibold">
+                              {ratingCount > 0 ? `${ratingAvg.toFixed(1)} (${ratingCount})` : "შეაფასეთ პირველმა"}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleShare(product)}
+                            title="გააზიარე"
+                            className="p-1.5 rounded-full text-[#C6A265]/70 hover:text-[#C6A265] hover:bg-[#C6A265]/10 transition"
+                          >
+                            <Share2 size={16} />
+                          </button>
+                        </div>
+
                         <p className={`text-sm ${textMutedClass} mb-4 leading-relaxed`}>
                           {product.description}
                         </p>
@@ -581,6 +713,12 @@ export default function Home() {
           </section>
         )}
       </main>
+
+      {toast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-60 bg-[#253e2f] border border-[#C6A265]/40 text-[#F9F6F0] text-sm font-semibold px-5 py-3 rounded-full shadow-2xl flex items-center gap-2">
+          <Check size={16} className="text-green-400" /> {toast}
+        </div>
+      )}
 
       {selectedVideo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
