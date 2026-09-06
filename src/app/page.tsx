@@ -26,6 +26,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(true);
   const [activeTab, setActiveTab] = useState<"menu" | "about" | "contact">("menu");
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>("ყველა");
   const [searchQuery, setSearchQuery] = useState("");
@@ -190,7 +191,34 @@ export default function Home() {
       showToast("შეფასების გაგზავნა ვერ მოხერხდა.");
     }
   };
-  
+
+  const renderRatingStars = (product: any, size: number = 14) => {
+    const ratingCount = product.rating_count || 0;
+    const ratingAvg = ratingCount > 0 ? (product.rating_sum || 0) / ratingCount : 0;
+    const hasUserRated = ratedProductIds.has(product.id);
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="flex items-center">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              type="button"
+              disabled={hasUserRated}
+              onClick={() => handleRate(product, star)}
+              title={hasUserRated ? "თქვენ უკვე შეაფასეთ ეს პროდუქტი" : `შეაფასეთ ${star} ვარსკვლავით`}
+              className={hasUserRated ? "cursor-default" : "cursor-pointer hover:scale-110 transition"}
+            >
+              <Star size={size} className={star <= Math.round(ratingAvg) ? "text-[#C6A265] fill-[#C6A265]" : "text-[#C6A265]/30"} />
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-[#C6A265]/80 font-semibold">
+          {ratingCount > 0 ? `${ratingAvg.toFixed(1)} (${ratingCount})` : "შეაფასეთ პირველმა"}
+        </span>
+      </div>
+    );
+  };
+
   const cartTotal = cart.reduce((total, item) => {
     const product = products.find((p) => p.id === item.id);
     return total + (product?.price || 0) * item.quantity;
@@ -234,6 +262,8 @@ export default function Home() {
     });
 
   const isFilterActive = sortOption !== "none" || inStockOnly;
+
+  const selectedProduct = selectedProductId != null ? products.find((p) => p.id === selectedProductId) || null : null;
 
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -479,9 +509,6 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => {
                   const isOutOfStock = product.is_available === false;
-                  const ratingCount = product.rating_count || 0;
-                  const ratingAvg = ratingCount > 0 ? (product.rating_sum || 0) / ratingCount : 0;
-                  const hasUserRated = ratedProductIds.has(product.id);
                   const isHighlighted = highlightedProductId === product.id;
                   return (
                   <div
@@ -489,7 +516,7 @@ export default function Home() {
                     id={`product-${product.id}`}
                     className={`${cardBgClass} rounded-2xl border overflow-hidden flex flex-col hover:scale-[1.01] transition-transform duration-200 ${isOutOfStock ? "opacity-60" : ""} ${isHighlighted ? "ring-4 ring-[#C6A265]" : ""}`}
                   >
-                    <div className="relative">
+                    <div className="relative cursor-pointer" onClick={() => setSelectedProductId(product.id)}>
                       <img src={optimizeCloudinaryUrl(product.image)} alt={product.name} className={`w-full h-48 object-cover ${isOutOfStock ? "grayscale" : ""}`} />
                       {isOutOfStock && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50">
@@ -504,7 +531,7 @@ export default function Home() {
                       <div>
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex flex-col">
-                            <h3 className="text-xl font-bold">{product.name}</h3>
+                            <h3 className="text-xl font-bold cursor-pointer hover:text-[#C6A265] transition" onClick={() => setSelectedProductId(product.id)}>{product.name}</h3>
                             <div className="mt-1">
                                {product.state_type === 'fresh' || product.name.includes('ცოცხალი') || product.name.includes('გაუყინავი') ? (
                                  <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">ცოცხალი / გაუყინავი</span>
@@ -519,25 +546,7 @@ export default function Home() {
                         </div>
 
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-1.5">
-                            <div className="flex items-center">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <button
-                                  key={star}
-                                  type="button"
-                                  disabled={hasUserRated}
-                                  onClick={() => handleRate(product, star)}
-                                  title={hasUserRated ? "თქვენ უკვე შეაფასეთ ეს პროდუქტი" : `შეაფასეთ ${star} ვარსკვლავით`}
-                                  className={hasUserRated ? "cursor-default" : "cursor-pointer hover:scale-110 transition"}
-                                >
-                                  <Star size={14} className={star <= Math.round(ratingAvg) ? "text-[#C6A265] fill-[#C6A265]" : "text-[#C6A265]/30"} />
-                                </button>
-                              ))}
-                            </div>
-                            <span className="text-xs text-[#C6A265]/80 font-semibold">
-                              {ratingCount > 0 ? `${ratingAvg.toFixed(1)} (${ratingCount})` : "შეაფასეთ პირველმა"}
-                            </span>
-                          </div>
+                          {renderRatingStars(product)}
                           <button
                             type="button"
                             onClick={() => handleShare(product)}
@@ -717,6 +726,97 @@ export default function Home() {
       {toast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-60 bg-[#253e2f] border border-[#C6A265]/40 text-[#F9F6F0] text-sm font-semibold px-5 py-3 rounded-full shadow-2xl flex items-center gap-2">
           <Check size={16} className="text-green-400" /> {toast}
+        </div>
+      )}
+
+      {selectedProduct && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#253e2f] text-[#F9F6F0] border border-[#C6A265]/30 rounded-3xl w-full max-w-lg relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedProductId(null)}
+              className="absolute top-4 right-4 bg-[#C6A265] text-black p-2 rounded-full hover:bg-gold shadow-lg z-10"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="relative">
+              <img
+                src={optimizeCloudinaryUrl(selectedProduct.image)}
+                alt={selectedProduct.name}
+                className={`w-full h-64 object-cover rounded-t-3xl ${selectedProduct.is_available === false ? "grayscale" : ""}`}
+              />
+              {selectedProduct.is_available === false && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-t-3xl">
+                  <span className="bg-black/80 text-[#C6A265] text-sm font-bold px-4 py-2 rounded-full border border-[#C6A265]/50 whitespace-nowrap">
+                    დროებით ამოიწურა ⏳
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-2 gap-3">
+                <div className="flex flex-col">
+                  <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
+                  <div className="mt-1">
+                    {selectedProduct.state_type === 'fresh' || selectedProduct.name.includes('ცოცხალი') || selectedProduct.name.includes('გაუყინავი') ? (
+                      <span className="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/30">ცოცხალი / გაუყინავი</span>
+                    ) : (
+                      <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">❄️ გაყინული</span>
+                    )}
+                  </div>
+                </div>
+                <p className="text-[#C6A265] font-extrabold text-xl whitespace-nowrap">
+                  {Number(selectedProduct.price).toFixed(2)} ₾ <span className="text-xs font-normal opacity-70">/ {selectedProduct.unit}</span>
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                {renderRatingStars(selectedProduct, 20)}
+                <button
+                  type="button"
+                  onClick={() => handleShare(selectedProduct)}
+                  title="გააზიარე"
+                  className="p-2 rounded-full text-[#C6A265]/70 hover:text-[#C6A265] hover:bg-[#C6A265]/10 transition"
+                >
+                  <Share2 size={20} />
+                </button>
+              </div>
+
+              <p className="text-sm opacity-80 mb-4 leading-relaxed">{selectedProduct.description}</p>
+
+              {selectedProduct.video_url && (
+                <button
+                  onClick={() => setSelectedVideo(toEmbedUrl(selectedProduct.video_url))}
+                  className="mb-4 flex items-center gap-2 text-xs font-bold text-[#C6A265] bg-[#C6A265]/10 hover:bg-[#C6A265]/20 px-3 py-2 rounded-xl border border-[#C6A265]/30 transition w-full justify-center"
+                >
+                  <Play size={14} fill="currentColor" /> მომზადების წესი (ვიდეო)
+                </button>
+              )}
+
+              <div className="flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-[#C6A265]/30">
+                <button
+                  onClick={() => updateQuantity(selectedProduct.id, -1)}
+                  disabled={selectedProduct.is_available === false}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full font-bold shadow transition ${
+                    selectedProduct.is_available === false ? "bg-white/40 text-black/40 cursor-not-allowed" : "bg-white text-black hover:bg-[#C6A265] hover:text-white"
+                  }`}
+                >
+                  <Minus size={18} />
+                </button>
+                <span className="font-bold text-xl w-10 text-center">{getQuantity(selectedProduct.id)}</span>
+                <button
+                  onClick={() => updateQuantity(selectedProduct.id, 1)}
+                  disabled={selectedProduct.is_available === false}
+                  className={`w-10 h-10 flex items-center justify-center rounded-full font-bold shadow transition ${
+                    selectedProduct.is_available === false ? "bg-[#C6A265]/40 text-black/40 cursor-not-allowed" : "bg-[#C6A265] text-black hover:bg-gold"
+                  }`}
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
