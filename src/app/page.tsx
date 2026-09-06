@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toEmbedUrl } from "@/lib/video";
@@ -19,7 +19,7 @@ const BANK_ACCOUNTS = [
   { bank: "თიბისი ბანკი (TBC Bank)", iban: "GE04TB7443345064300113" },
 ];
 
-export default function Home() {
+function HomeContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<{ id: number; quantity: number }[]>([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -1026,5 +1026,13 @@ export default function Home() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#1b2e23]" />}>
+      <HomeContent />
+    </Suspense>
   );
 }
