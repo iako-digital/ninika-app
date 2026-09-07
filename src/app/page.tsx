@@ -19,6 +19,10 @@ const BANK_ACCOUNTS = [
   { bank: "თიბისი ბანკი (TBC Bank)", iban: "GE04TB7443345064300113" },
 ];
 
+// Vercel-ის სერვერულ ფუნქციებზე request body-ს ჰარდლიმიტია ~4.5MB. Base64-ში კოდირება
+// ფაილს დაახლოებით 33%-ით ზრდის, ამიტომ ვზღუდავთ ავტვირთვას ამ ლიმიტამდე მისვლის თავიდან ასაცილებლად.
+const MAX_RECEIPT_SIZE_MB = 3;
+
 function HomeContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<{ id: number; quantity: number }[]>([]);
@@ -334,7 +338,7 @@ function HomeContent() {
 
       const data = await res.json().catch(() => null);
 
-      if (res.ok && data?.success) {
+      if (res.ok || data?.success === true) {
         alert("🎉 გმადლობთ! თქვენი შეკვეთა მიღებულია.");
         setCart([]);
         setCustomerName("");
@@ -1001,7 +1005,17 @@ function HomeContent() {
                         type="file"
                         accept="image/*,.pdf"
                         id="receipt-upload"
-                        onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          if (file && file.size > MAX_RECEIPT_SIZE_MB * 1024 * 1024) {
+                            setFormError(`ფაილი ძალიან დიდია — მაქსიმუმ ${MAX_RECEIPT_SIZE_MB}MB დაშვებულია. გთხოვთ ატვირთოთ უფრო მცირე ზომის ფოტო.`);
+                            setReceiptFile(null);
+                            e.target.value = "";
+                            return;
+                          }
+                          setFormError(null);
+                          setReceiptFile(file);
+                        }}
                         className="hidden"
                       />
                       <label
