@@ -323,10 +323,7 @@ function HomeContent() {
       const data = await res.json().catch(() => null);
 
       if (res.ok && data?.success) {
-        if (data?.warning) {
-          console.warn("Order warning:", data.warning);
-        }
-        alert("🎉 შეკვეთა წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
+        alert("🎉 გმადლობთ! თქვენი შეკვეთა მიღებულია.");
         setCart([]);
         setCustomerName("");
         setCustomerPhone("");
