@@ -320,7 +320,12 @@ function HomeContent() {
         }),
       });
 
-      if (res.ok) {
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data?.success) {
+        if (data?.warning) {
+          console.warn("Order warning:", data.warning);
+        }
         alert("🎉 შეკვეთა წარმატებით გაიგზავნა! მალე დაგიკავშირდებით.");
         setCart([]);
         setCustomerName("");
@@ -328,11 +333,13 @@ function HomeContent() {
         setReceiptFile(null);
         setIsCheckoutOpen(false);
       } else {
-        alert("შეცდომა შეკვეთის გაგზავნისას.");
+        const message = data?.message || "უცნობი ხარვეზი";
+        console.error("Order failed:", data);
+        alert(`შეცდომა შეკვეთის გაგზავნისას: ${message}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("დაფიქსირდა შეცდომა.");
+      alert(`დაფიქსირდა შეცდომა: ${err?.message || err}`);
     } finally {
       setIsSubmitting(false);
     }

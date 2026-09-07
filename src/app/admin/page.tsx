@@ -31,6 +31,21 @@ create policy "public access" on products for all using (true) with check (true)
 );
 alter table ai_knowledge enable row level security;
 create policy "public access" on ai_knowledge for all using (true) with check (true);`,
+  orders: `create table if not exists orders (
+  id bigint generated always as identity primary key,
+  customer_name text not null,
+  phone text not null,
+  delivery_method text,
+  payment_method text,
+  items jsonb not null default '[]',
+  total_price numeric not null default 0,
+  receipt_name text,
+  status text not null default 'new',
+  email_sent boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table orders enable row level security;
+create policy "public access" on orders for all using (true) with check (true);`,
 };
 
 function isMissingTableError(error: any) {
