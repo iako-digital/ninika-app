@@ -41,6 +41,7 @@ function HomeContent() {
 
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState("ადგილიდან გატანა (ოზურგეთი, ს. მგელაძის 3)");
   const [paymentMethod, setPaymentMethod] = useState("ადგილზე გადახდა (ნაღდი/ბარათი)");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -235,6 +236,8 @@ function HomeContent() {
   const cartItemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   const isReceiptMissing = paymentMethod.includes("ანგარიშის") && !receiptFile;
+  const isDeliverySelected = deliveryMethod.includes("მიტანის");
+  const isAddressMissing = isDeliverySelected && !deliveryAddress.trim();
 
   // 🛠️ გასწორებული ფილტრაციის ლოგიკა
   const filteredProducts = products
@@ -279,15 +282,22 @@ function HomeContent() {
       customerName,
       customerPhone,
       deliveryMethod,
+      deliveryAddress,
       paymentMethod,
       cart,
       isReceiptMissing,
+      isAddressMissing,
     });
 
     setFormError(null);
 
     if (!customerName.trim() || !customerPhone.trim()) {
       setFormError("გთხოვთ შეავსოთ სახელი და ტელეფონის ნომერი.");
+      return;
+    }
+
+    if (isAddressMissing) {
+      setFormError("გთხოვთ, მიუთითოთ მიტანის მისამართი.");
       return;
     }
 
@@ -328,6 +338,7 @@ function HomeContent() {
           name: customerName,
           phone: customerPhone,
           delivery: deliveryMethod,
+          address: isDeliverySelected ? deliveryAddress.trim() : "",
           payment: paymentMethod,
           items: cartItems,
           total: cartTotal,
@@ -343,6 +354,7 @@ function HomeContent() {
         setCart([]);
         setCustomerName("");
         setCustomerPhone("");
+        setDeliveryAddress("");
         setReceiptFile(null);
         setIsCheckoutOpen(false);
       } else {
@@ -955,6 +967,19 @@ function HomeContent() {
                   <option value="მიტანის სერვისი (ოზურგეთი)">მიტანის სერვისი (ოზურგეთი)</option>
                 </select>
               </div>
+
+              {isDeliverySelected && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1">მიტანის მისამართი</label>
+                  <textarea
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder="გთხოვთ, ყურადღებით მიუთითოთ ზუსტი მისამართი ❤️"
+                    rows={2}
+                    className="w-full p-3 rounded-xl bg-black/20 border border-[#C6A265]/30 text-white focus:outline-none resize-none"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold mb-1">გადახდის მეთოდი</label>

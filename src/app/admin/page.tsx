@@ -36,6 +36,7 @@ create policy "public access" on ai_knowledge for all using (true) with check (t
   customer_name text not null,
   phone text not null,
   delivery_method text,
+  delivery_address text,
   payment_method text,
   items jsonb not null default '[]',
   total_price numeric not null default 0,

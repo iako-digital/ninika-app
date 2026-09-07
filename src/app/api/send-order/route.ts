@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       console.error("JSON PARSE ERROR:", err);
     }
 
-    const { name, phone, delivery, payment, items, total, receiptBase64, receiptName } = body || {};
+    const { name, phone, delivery, address, payment, items, total, receiptBase64, receiptName } = body || {};
     const safeItems = Array.isArray(items) ? items : [];
 
     // მინიმალური ვალიდაცია — მხოლოდ ამის ჩავარდნაზე ვაბრუნებთ არა-წარმატებულ პასუხს.
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
             customer_name: name,
             phone,
             delivery_method: delivery ?? null,
+            delivery_address: address || null,
             payment_method: payment ?? null,
             items: safeItems,
             total_price: Number(total) || 0,
@@ -106,6 +107,7 @@ export async function POST(request: Request) {
                 <p><strong>მომხმარებელი:</strong> ${name}</p>
                 <p><strong>ტელეფონი:</strong> ${phone}</p>
                 <p><strong>მიტანის მეთოდი:</strong> ${delivery}</p>
+                ${address ? `<p><strong>მისამართი:</strong> ${address}</p>` : ""}
                 <p><strong>გადახდის მეთოდი:</strong> ${payment || "ადგილზე გადახდა"}</p>
                 ${payment?.includes?.("ანგარიშის") ? receiptHtml : ""}
                 <h3>შეკვეთილი პროდუქტები:</h3>
