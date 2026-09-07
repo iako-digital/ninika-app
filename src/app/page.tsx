@@ -42,6 +42,7 @@ function HomeContent() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copiedIban, setCopiedIban] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [ratedProductIds, setRatedProductIds] = useState<Set<number>>(new Set());
   const [highlightedProductId, setHighlightedProductId] = useState<number | null>(null);
@@ -270,13 +271,24 @@ function HomeContent() {
 
   const handleSendOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !customerPhone) {
-      alert("გთხოვთ შეავსოთ სახელი და ტელეფონის ნომერი!");
+    console.log("SUBMIT CLICKED", {
+      customerName,
+      customerPhone,
+      deliveryMethod,
+      paymentMethod,
+      cart,
+      isReceiptMissing,
+    });
+
+    setFormError(null);
+
+    if (!customerName.trim() || !customerPhone.trim()) {
+      setFormError("გთხოვთ შეავსოთ სახელი და ტელეფონის ნომერი.");
       return;
     }
 
     if (isReceiptMissing) {
-      alert("გთხოვთ ატვირთოთ გადარიცხვის ქვითარი!");
+      setFormError("გთხოვთ ატვირთოთ გადარიცხვის ქვითარი.");
       return;
     }
 
@@ -900,7 +912,7 @@ function HomeContent() {
               </div>
             </div>
 
-            <form onSubmit={handleSendOrder} className="space-y-4">
+            <form onSubmit={handleSendOrder} noValidate className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1">სახელი და გვარი</label>
                 <input
@@ -1011,6 +1023,10 @@ function HomeContent() {
                     )}
                   </div>
                 </div>
+              )}
+
+              {formError && (
+                <p className="text-sm text-red-500 font-semibold text-center">{formError}</p>
               )}
 
               <button
