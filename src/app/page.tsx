@@ -170,9 +170,12 @@ function HomeContent() {
       return next;
     });
 
-    const { error } = await supabase.rpc("increment_product_rating", { p_product_id: product.id, p_stars: stars });
+    const { error } = await supabase.rpc("increment_product_rating", {
+      p_product_id: Number(product.id),
+      p_stars: Number(stars),
+    });
     if (error) {
-      console.error("Rating failed:", error);
+      console.error("Rating failed:", error.message, "| details:", error.details, "| hint:", error.hint, "| code:", error.code);
       setProducts((prev) =>
         prev.map((p) =>
           p.id === product.id
