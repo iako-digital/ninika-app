@@ -23,6 +23,104 @@ const BANK_ACCOUNTS = [
 // ფაილს დაახლოებით 33%-ით ზრდის, ამიტომ ვზღუდავთ ავტვირთვას ამ ლიმიტამდე მისვლის თავიდან ასაცილებლად.
 const MAX_RECEIPT_SIZE_MB = 3;
 
+const MAX_QUANTITY = 999;
+
+const DELIVERY_FEES = [
+  { label: "ქალაქის მასშტაბით", price: 5 },
+  { label: "მიმდებარე სოფლებში", price: 10 },
+  { label: "15 კმ-ზე დაშორებულ სოფლებში", price: 20 },
+];
+
+// ცარიელი, არარიცხვითი ან 1-ზე ნაკლები მნიშვნელობა ხდება 1-ად; ზედა ზღვარი MAX_QUANTITY-ა.
+const normalizeQuantity = (value: number) => {
+  if (!Number.isFinite(value) || value < 1) return 1;
+  return Math.min(Math.floor(value), MAX_QUANTITY);
+};
+
+const QUANTITY_SIZES = {
+  sm: { wrapper: "inline-flex gap-1 p-1 shrink-0", button: "w-7 h-7", icon: 14, input: "w-10 text-base" },
+  md: { wrapper: "flex justify-between p-1.5", button: "w-9 h-9", icon: 16, input: "w-14 text-lg" },
+  lg: { wrapper: "flex justify-between p-1.5", button: "w-10 h-10", icon: 18, input: "w-16 text-xl" },
+};
+
+type QuantityControlProps = {
+  quantity: number;
+  onDecrement: () => void;
+  onIncrement: () => void;
+  onSet: (quantity: number) => void;
+  disabled?: boolean;
+  size?: keyof typeof QUANTITY_SIZES;
+  className?: string;
+};
+
+function QuantityControl({ quantity, onDecrement, onIncrement, onSet, disabled = false, size = "md", className = "" }: QuantityControlProps) {
+  // აკრეფისას ველი დროებით ცარიელი შეიძლება იყოს (თორემ "20"-ის ასაკრეფად ჯერ "1" გამოჩნდებოდა),
+  // ამიტომ ტექსტი ცალკე ინახება და ცარიელი/არასწორი მნიშვნელობა blur-ზე ხდება 1.
+  const [draft, setDraft] = useState<string | null>(null);
+  const s = QUANTITY_SIZES[size];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    if (raw === "") {
+      setDraft("");
+      return;
+    }
+    const next = normalizeQuantity(Number(raw));
+    onSet(next);
+    setDraft(String(next));
+  };
+
+  const handleBlur = () => {
+    if (draft === null) return; // ველს არ შეხებიან — კალათა უცვლელი რჩება
+    onSet(normalizeQuantity(Number(draft)));
+    setDraft(null);
+  };
+
+  return (
+    <div className={`${s.wrapper} items-center bg-black/10 rounded-full border border-[#C6A265]/30 ${className}`}>
+      <button
+        type="button"
+        onClick={onDecrement}
+        disabled={disabled}
+        aria-label="შემცირება"
+        className={`${s.button} shrink-0 flex items-center justify-center rounded-full font-bold shadow transition ${
+          disabled ? "bg-white/40 text-black/40 cursor-not-allowed" : "bg-white text-black hover:bg-[#C6A265] hover:text-white"
+        }`}
+      >
+        <Minus size={s.icon} />
+      </button>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={MAX_QUANTITY}
+        step={1}
+        value={draft ?? quantity}
+        disabled={disabled}
+        aria-label="რაოდენობა"
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onFocus={(e) => e.target.select()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+        }}
+        className={`${s.input} min-w-0 bg-transparent text-center font-bold rounded-md focus:outline-none focus:ring-1 focus:ring-[#C6A265]/60 disabled:cursor-not-allowed [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+      />
+      <button
+        type="button"
+        onClick={onIncrement}
+        disabled={disabled}
+        aria-label="გაზრდა"
+        className={`${s.button} shrink-0 flex items-center justify-center rounded-full font-bold shadow transition ${
+          disabled ? "bg-[#C6A265]/40 text-black/40 cursor-not-allowed" : "bg-[#C6A265] text-black hover:bg-gold"
+        }`}
+      >
+        <Plus size={s.icon} />
+      </button>
+    </div>
+  );
+}
+
 function HomeContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<{ id: number; quantity: number }[]>([]);
@@ -133,7 +231,22 @@ function HomeContent() {
     });
   };
 
+  const setQuantity = (id: number, quantity: number) => {
+    const next = normalizeQuantity(quantity);
+    setCart((prev) =>
+      prev.some((item) => item.id === id)
+        ? prev.map((item) => (item.id === id ? { ...item, quantity: next } : item))
+        : [...prev, { id, quantity: next }]
+    );
+  };
+
   const getQuantity = (id: number) => cart.find((item) => item.id === id)?.quantity || 0;
+
+  // Checkout-ში ბოლო პროდუქტის წაშლისას ცარიელი შეკვეთის ფორმა არ უნდა დარჩეს ღია
+  const decrementInCheckout = (id: number) => {
+    if (cart.length === 1 && getQuantity(id) === 1) setIsCheckoutOpen(false);
+    updateQuantity(id, -1);
+  };
 
   const handleCopyIban = (iban: string) => {
     navigator.clipboard.writeText(iban);
@@ -606,27 +719,14 @@ function HomeContent() {
                         )}
                       </div>
                       
-                      <div className="mt-auto flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-[#C6A265]/30">
-                        <button
-                          onClick={() => updateQuantity(product.id, -1)}
-                          disabled={isOutOfStock}
-                          className={`w-9 h-9 flex items-center justify-center rounded-full font-bold shadow transition ${
-                            isOutOfStock ? "bg-white/40 text-black/40 cursor-not-allowed" : "bg-white text-black hover:bg-[#C6A265] hover:text-white"
-                          }`}
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="font-bold text-lg w-8 text-center">{getQuantity(product.id)}</span>
-                        <button
-                          onClick={() => updateQuantity(product.id, 1)}
-                          disabled={isOutOfStock}
-                          className={`w-9 h-9 flex items-center justify-center rounded-full font-bold shadow transition ${
-                            isOutOfStock ? "bg-[#C6A265]/40 text-black/40 cursor-not-allowed" : "bg-[#C6A265] text-black hover:bg-gold"
-                          }`}
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
+                      <QuantityControl
+                        className="mt-auto"
+                        quantity={getQuantity(product.id)}
+                        onDecrement={() => updateQuantity(product.id, -1)}
+                        onIncrement={() => updateQuantity(product.id, 1)}
+                        onSet={(qty) => setQuantity(product.id, qty)}
+                        disabled={isOutOfStock}
+                      />
                     </div>
                   </div>
                   );
@@ -829,27 +929,15 @@ function HomeContent() {
                 </button>
               )}
 
-              <div className="flex items-center justify-between bg-black/10 rounded-full p-1.5 border border-[#C6A265]/30">
-                <button
-                  onClick={() => updateQuantity(selectedProduct.id, -1)}
-                  disabled={selectedProduct.is_available === false}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full font-bold shadow transition ${
-                    selectedProduct.is_available === false ? "bg-white/40 text-black/40 cursor-not-allowed" : "bg-white text-black hover:bg-[#C6A265] hover:text-white"
-                  }`}
-                >
-                  <Minus size={18} />
-                </button>
-                <span className="font-bold text-xl w-10 text-center">{getQuantity(selectedProduct.id)}</span>
-                <button
-                  onClick={() => updateQuantity(selectedProduct.id, 1)}
-                  disabled={selectedProduct.is_available === false}
-                  className={`w-10 h-10 flex items-center justify-center rounded-full font-bold shadow transition ${
-                    selectedProduct.is_available === false ? "bg-[#C6A265]/40 text-black/40 cursor-not-allowed" : "bg-[#C6A265] text-black hover:bg-gold"
-                  }`}
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
+              <QuantityControl
+                key={selectedProduct.id}
+                size="lg"
+                quantity={getQuantity(selectedProduct.id)}
+                onDecrement={() => updateQuantity(selectedProduct.id, -1)}
+                onIncrement={() => updateQuantity(selectedProduct.id, 1)}
+                onSet={(qty) => setQuantity(selectedProduct.id, qty)}
+                disabled={selectedProduct.is_available === false}
+              />
             </div>
           </div>
         </div>
@@ -913,12 +1001,19 @@ function HomeContent() {
                 const product = products.find((p) => p.id === item.id);
                 if (!product) return null;
                 return (
-                  <div key={item.id} className="flex justify-between items-center text-sm">
-                    <div>
-                      <span className="font-bold">{product.name}</span>
-                      <span className="text-gray-400 text-xs ml-2">({item.quantity} x {product.price.toFixed(2)} ₾)</span>
+                  <div key={item.id} className="flex items-center gap-3 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold leading-snug">{product.name}</p>
+                      <p className="text-gray-400 text-xs">{Number(product.price).toFixed(2)} ₾ / {product.unit}</p>
                     </div>
-                    <span className="font-bold text-[#C6A265]">{(product.price * item.quantity).toFixed(2)} ₾</span>
+                    <QuantityControl
+                      size="sm"
+                      quantity={item.quantity}
+                      onDecrement={() => decrementInCheckout(item.id)}
+                      onIncrement={() => updateQuantity(item.id, 1)}
+                      onSet={(qty) => setQuantity(item.id, qty)}
+                    />
+                    <span className="font-bold text-[#C6A265] w-16 shrink-0 text-right whitespace-nowrap">{(product.price * item.quantity).toFixed(2)} ₾</span>
                   </div>
                 );
               })}
@@ -970,6 +1065,23 @@ function HomeContent() {
 
               {isDeliverySelected && (
                 <div>
+                  <div className="bg-[#C6A265]/10 border border-[#C6A265]/40 rounded-2xl p-4 mb-3">
+                    <p className="font-bold text-[#C6A265] flex items-center gap-2 mb-3">
+                      <span aria-hidden="true">🛵</span> მიტანის სერვისის ღირებულება:
+                    </p>
+                    <ul className="space-y-2 text-sm">
+                      {DELIVERY_FEES.map((fee) => (
+                        <li key={fee.label} className="flex items-baseline justify-between gap-3">
+                          <span className="flex items-baseline gap-2">
+                            <span className="text-[#C6A265]" aria-hidden="true">•</span>
+                            {fee.label}
+                          </span>
+                          <span className="font-extrabold text-[#C6A265] whitespace-nowrap">{fee.price} ₾</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
                   <label className="block text-sm font-semibold mb-1">მიტანის მისამართი</label>
                   <textarea
                     value={deliveryAddress}
